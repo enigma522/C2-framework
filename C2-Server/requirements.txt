@@ -1,0 +1,3 @@
+flask-mongoengine
+Flask-RESTful
+Flask==2.2.5
