@@ -2,7 +2,7 @@ package modules
 
 import (
 	"fmt"
-
+	
 )
 
 type PingModule struct{}
