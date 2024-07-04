@@ -58,4 +58,4 @@ api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
 api.add_resource(resources.Results, '/results', endpoint='results')
 
 if __name__ == '__main__':
-    app.run(port=5000,debug=True)
+    app.run(port=5000,debug=True,host='0.0.0.0')

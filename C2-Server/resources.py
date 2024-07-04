@@ -4,7 +4,7 @@ import json
 from flask import request, Response
 from flask_restful import Resource
 from database.db import initialize_db
-from database.models import Task, Result, TaskHistory
+from database.models import Task, Result
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
