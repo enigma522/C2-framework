@@ -29,6 +29,9 @@ def register():
         if not implantID :
             return jsonify({"msg": "bay"}), 400
         body = request.get_json()
+        findimp = Implant.objects(implant_id=str(implantID)).first()
+        if findimp:
+            return jsonify({"msg": "welcome again"}), 200
         imp = Implant(**body)
         imp.save()
         return jsonify({"msg": "Implant Registered"}), 200

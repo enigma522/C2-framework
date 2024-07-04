@@ -13,7 +13,7 @@ class Tasks(Resource):
     @jwt_required()
     def get(self):
         implant_id = get_jwt_identity()
-        print(implant_id)
+
         if implant_id:
             Tasks = Task.objects(implant_id=str(implant_id)).to_json()
             return Response(Tasks, mimetype="application/json", status=200)
@@ -52,17 +52,20 @@ class Results(Resource):
     @jwt_required()
     def post(self):
         implant_id = get_jwt_identity()
+        body = request.get_json()
+        print(body['task_id'])
         
         if not implant_id:
             return Response("Unauthorized", mimetype="application/json", status=401)
-        body = request.get_json()
         if 'task_id' not in body:
             return Response("Task ID not provided", mimetype="application/json", status=400)
         body['implant_id'] = str(implant_id)
         task = Task.objects(task_id=body['task_id']).first()
         if not task:
             return Response("Task ID not found", mimetype="application/json", status=404)
+        body['task_obj'] = task.to_json()
         task.delete()
+        
         res = Result(**body).save()
         
         return Response(res.to_json(), mimetype="application/json", status=200)
