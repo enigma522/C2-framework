@@ -46,6 +46,7 @@ class Results(Resource):
     def get(self):
         username = get_jwt_identity()
         implant_id = request.args.get('implant_id')
+        print(implant_id)
         if username:
             res = Result.objects(implant_id=str(implant_id)).to_json()
             return Response(res, mimetype="application/json", status=200)
@@ -69,11 +70,13 @@ class Results(Resource):
             return Response("Task ID not found", mimetype="application/json", status=404)
         
         if task.task_type == "screenshot":
+            
             imageString = body['result']
             print(imageString)
             img_bytes = base64.b64decode(imageString)
             img = Image.open(BytesIO(img_bytes))
             img.save(f"images/{task.task_id}.png")
+            body['result'] = f"images/{task.task_id}.png"
         
         
         body['task_obj'] = task.to_json()
@@ -84,8 +87,10 @@ class Results(Resource):
         return Response(res.to_json(), mimetype="application/json", status=200)
         
 class implants(Resource):
+    @jwt_required()
     def get(self):
-        res = Implant().to_json()
+        res = Implant.objects.to_json()  
+        
         return Response(res, mimetype="application/json", status=200)
 
 
