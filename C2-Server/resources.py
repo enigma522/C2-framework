@@ -27,15 +27,14 @@ class Tasks(Resource):
     @jwt_required()
     def post(self):
         print("POST")
-        implant_id = get_jwt_identity()
+        username = get_jwt_identity()
         
-        if not implant_id:
+        if not username:
             return Response("Unauthorized", mimetype="application/json", status=401)
         body = request.get_json()
         obj_nbr = len(body)
         for i in range(len(body)):
             body[i]['task_id'] = str(uuid.uuid4())
-            body[i]['implant_id'] = str(implant_id)
             Task(**body[i]).save()
             
             
@@ -45,8 +44,9 @@ class Tasks(Resource):
 class Results(Resource):
     @jwt_required()
     def get(self):
-        implant_id = get_jwt_identity()
-        if implant_id:
+        username = get_jwt_identity()
+        implant_id = request.args.get('implant_id')
+        if username:
             res = Result.objects(implant_id=str(implant_id)).to_json()
             return Response(res, mimetype="application/json", status=200)
         else:
