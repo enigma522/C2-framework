@@ -4,7 +4,7 @@ import json
 from flask import request, Response
 from flask_restful import Resource
 from database.db import initialize_db
-from database.models import Task, Result
+from database.models import Task, Result, Implant
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import base64
 from io import BytesIO
@@ -82,4 +82,11 @@ class Results(Resource):
         res = Result(**body).save()
         
         return Response(res.to_json(), mimetype="application/json", status=200)
+        
+class implants(Resource):
+    def get(self):
+        res = Implant().to_json()
+        return Response(res, mimetype="application/json", status=200)
+
+
         

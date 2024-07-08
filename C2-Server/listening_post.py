@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret-pass-5522-flag'
 app.config['MONGODB_SETTINGS'] = {
     'db': 'C2Server',
-    'host': 'mongodb://localhost:27017/C2Server'
+    'host': 'mongodb://mongo:27017/C2Server'
 }
 
 initialize_db(app)
@@ -59,6 +59,6 @@ def login():
 
 api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
 api.add_resource(resources.Results, '/results', endpoint='results')
-
+api.add_resource(resources.implants, '/implants', endpoint='implants')
 if __name__ == '__main__':
     app.run(port=5000,debug=True,host='0.0.0.0')

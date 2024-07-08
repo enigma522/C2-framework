@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_APP=listening_post.py
+      - FLASK_RUN_HOST=0.0.0.0
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: C2Server
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
