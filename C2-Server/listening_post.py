@@ -1,7 +1,8 @@
 
+import os
 import resources
 
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, send_file
 from flask_restful import Api
 from database.db import initialize_db
 from flask_jwt_extended import JWTManager, create_access_token
@@ -11,7 +12,7 @@ app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret-pass-5522-flag'
 app.config['MONGODB_SETTINGS'] = {
     'db': 'C2Server',
-    'host': 'mongodb://localhost:27017/C2Server'
+    'host': 'mongodb://192.168.0.115:27017/C2Server'
 }
 
 initialize_db(app)
@@ -75,6 +76,16 @@ def profile_login():
     except Exception as e:
         print(e)
         return jsonify({"msg": "bay"}), 500
+    
+@app.route('/get_image', methods=['GET'])
+def get_image():
+
+    path_to_file = "images\\"+request.args.get('task_id')+"png"
+
+    if not path_to_file or not os.path.isfile(path_to_file):
+         return jsonify({"msg": "Invalid path"}), 401
+    
+    return send_file(path_to_file, mimetype='images/png')
 
 api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
 api.add_resource(resources.Results, '/results', endpoint='results')

