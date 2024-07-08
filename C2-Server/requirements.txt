@@ -2,3 +2,4 @@ flask-mongoengine
 Flask-RESTful
 flask_jwt_extended
 Flask==2.2.5
+Pillow

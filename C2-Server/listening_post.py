@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret-pass-5522-flag'
 app.config['MONGODB_SETTINGS'] = {
     'db': 'C2Server',
-    'host': 'mongodb://192.168.0.115:27017/C2Server'
+    'host': 'mongodb://mongo:27017/C2Server'
 }
 
 initialize_db(app)
@@ -66,7 +66,7 @@ def profile_login():
             return jsonify({"msg": "bay"}), 400
 
         user = Profile.objects(username=str(username)).first()
-        
+
         if user and password == user.password:
             
             access_token = create_access_token(identity=username, expires_delta=False)
