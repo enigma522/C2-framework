@@ -12,3 +12,7 @@ class Result(db.DynamicDocument):
     task_id = db.StringField(required=True, unique=True)
     implant_id = db.StringField(required=True)
     
+class Profile(db.DynamicDocument):
+    username = db.StringField(required=True, unique=True)
+    password = db.StringField(required=True)
+    

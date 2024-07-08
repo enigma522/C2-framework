@@ -5,13 +5,13 @@ from flask import Flask, request, Response, jsonify
 from flask_restful import Api
 from database.db import initialize_db
 from flask_jwt_extended import JWTManager, create_access_token
-from database.models import Implant
+from database.models import Implant, Profile
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret-pass-5522-flag'
 app.config['MONGODB_SETTINGS'] = {
     'db': 'C2Server',
-    'host': 'mongodb://mongo:27017/C2Server'
+    'host': 'mongodb://localhost:27017/C2Server'
 }
 
 initialize_db(app)
@@ -43,7 +43,6 @@ def login():
     try:
         implantID = request.json.get('implantID', None)
         secret = request.json.get('secret', None)
-
         if not implantID or not secret:
             return jsonify({"msg": "bay"}), 400
 
@@ -55,6 +54,26 @@ def login():
         else:
             return jsonify({"msg": "Invalid Token"}), 401
     except Exception as e:
+        return jsonify({"msg": "bay"}), 500
+
+@app.route('/profile/login', methods=['POST'])
+def profile_login():
+    try:
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
+        if not username or not password:
+            return jsonify({"msg": "bay"}), 400
+
+        user = Profile.objects(username=str(username)).first()
+        
+        if user and password == user.password:
+            
+            access_token = create_access_token(identity=username, expires_delta=False)
+            return jsonify(access_token=access_token), 200
+        else:
+            return jsonify({"msg": "Invalid pass"}), 401
+    except Exception as e:
+        print(e)
         return jsonify({"msg": "bay"}), 500
 
 api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
