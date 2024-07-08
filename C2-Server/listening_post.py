@@ -80,7 +80,7 @@ def profile_login():
 @app.route('/get_image', methods=['GET'])
 def get_image():
 
-    path_to_file = "images\\"+request.args.get('task_id')+"png"
+    path_to_file = "images/"+request.args.get('task_id')+".png"
 
     if not path_to_file or not os.path.isfile(path_to_file):
          return jsonify({"msg": "Invalid path"}), 401
