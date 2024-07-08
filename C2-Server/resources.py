@@ -75,9 +75,10 @@ class Results(Resource):
             img = Image.open(BytesIO(img_bytes))
             img.save(f"images/{task.task_id}.png")
         elif task.task_type == "upload":
-            fileString= body['result']['file_data']
+            print(body['result'])
+            fileString= json.loads(body['result']).get('file_data',"")
             file_bytes = base64.b64decode(fileString)
-            extention= body['result']['file_path'].split('.')[-1]
+            extention= json.loads(body['result']).get('file_path','').split('.')[-1]
 
             with open(f"uploads/{task.task_id}.{extention}", "w") as f:
                 f.write(file_bytes.decode())
