@@ -10,6 +10,7 @@ services:
     environment:
       - FLASK_APP=listening_post.py
       - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_ENV=development
     depends_on:
       - mongo
 
@@ -21,6 +22,7 @@ services:
       MONGO_INITDB_DATABASE: C2Server
     volumes:
       - mongo-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
 
 volumes:
   mongo-data:
