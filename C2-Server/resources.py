@@ -70,13 +70,18 @@ class Results(Resource):
             return Response("Task ID not found", mimetype="application/json", status=404)
         
         if task.task_type == "screenshot":
-            
             imageString = body['result']
-            print(imageString)
             img_bytes = base64.b64decode(imageString)
             img = Image.open(BytesIO(img_bytes))
             img.save(f"images/{task.task_id}.png")
-            body['result'] = f"images/{task.task_id}.png"
+        elif task.task_type == "upload":
+            fileString= body['result']['file_data']
+            file_bytes = base64.b64decode(fileString)
+            extention= body['result']['file_path'].split('.')[-1]
+
+            with open(f"uploads/{task.task_id}.{extention}", "w") as f:
+                f.write(file_bytes.decode())
+                
         
         
         body['task_obj'] = task.to_json()
