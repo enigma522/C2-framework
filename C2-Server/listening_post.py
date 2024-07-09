@@ -76,19 +76,12 @@ def profile_login():
     except Exception as e:
         print(e)
         return jsonify({"msg": "bay"}), 500
-    
-@app.route('/get_image', methods=['GET'])
-def get_image():
 
-    path_to_file = "images/"+request.args.get('task_id')+".png"
-
-    if not path_to_file or not os.path.isfile(path_to_file):
-         return jsonify({"msg": "Invalid path"}), 401
-    
-    return send_file(path_to_file, mimetype='images/png')
 
 api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
 api.add_resource(resources.Results, '/results', endpoint='results')
 api.add_resource(resources.implants, '/implants', endpoint='implants')
+api.add_resource(resources.files, '/get_file', endpoint='files')
+
 if __name__ == '__main__':
     app.run(port=5000,debug=True,host='0.0.0.0')

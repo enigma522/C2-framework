@@ -10,7 +10,7 @@ services:
     environment:
       - FLASK_APP=listening_post.py
       - FLASK_RUN_HOST=0.0.0.0
-      - FLASK_ENV=development
+      - FLASK_DEBUG=1
     depends_on:
       - mongo
 

