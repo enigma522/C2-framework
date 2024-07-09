@@ -7,10 +7,8 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    environment:
-      - FLASK_APP=listening_post.py
-      - FLASK_RUN_HOST=0.0.0.0
-      - FLASK_DEBUG=1
+    env_file:
+      - ./.env
     depends_on:
       - mongo
 

@@ -129,6 +129,8 @@ def main():
     args = parser.parse_args()
 
     access_token = login(args.server_url)
+    while not access_token:
+        access_token = login(args.server_url)
     
 
     try:

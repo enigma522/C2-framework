@@ -2,17 +2,21 @@
 import os
 import resources
 
-from flask import Flask, request, Response, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_restful import Api
 from database.db import initialize_db
 from flask_jwt_extended import JWTManager, create_access_token
 from database.models import Implant, Profile
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'super-secret-pass-5522-flag'
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_Secret', 'super-secret-pass-5522-flag')
+mongo_host = os.getenv('Mongo_Host', 'mongo')
+mongo_port = os.getenv('Mongo_Port', 27017)
+mongo_db = os.getenv('Mongo_DB', 'C2Server')
+
 app.config['MONGODB_SETTINGS'] = {
-    'db': 'C2Server',
-    'host': 'mongodb://mongo:27017/C2Server'
+    'db': mongo_db,
+    'host': f'mongodb://{mongo_host}:{mongo_port}/{mongo_db}'
 }
 
 initialize_db(app)
@@ -20,7 +24,7 @@ initialize_db(app)
 api = Api(app)
 jwt = JWTManager(app)
 
-secretkey = "e7bcc0ba5fb1dc9cc09460baaa2a6986"
+secretkey = os.getenv('secret_key', 'e7bcc0ba5fb1dc9cc09460baaa2a6986')
 
 @app.route('/config', methods=['POST'])
 def register():
@@ -84,4 +88,7 @@ api.add_resource(resources.implants, '/implants', endpoint='implants')
 api.add_resource(resources.files, '/get_file', endpoint='files')
 
 if __name__ == '__main__':
-    app.run(port=5000,debug=True,host='0.0.0.0')
+    port=int(os.getenv('Flask_Port', 5000))
+    debug=bool(int(os.getenv('FLASK_DEBUG', 1)))
+    host=os.getenv('FLASK_RUN_HOST', '0.0.0.0')
+    app.run(port,debug,host)

@@ -84,8 +84,6 @@ class Results(Resource):
             with open(f"uploads/{task.task_id}.{extention}", "w") as f:
                 f.write(file_bytes.decode())
                 
-        
-        
         body['task_obj'] = task.to_json()
         task.delete()
         
