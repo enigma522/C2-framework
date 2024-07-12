@@ -121,12 +121,12 @@ func (i *Implant) Beaconing() {
 		for _, task := range tasks {
 			fmt.Println("Task:", task)
 
-			response, err := i.executeTask(task)
+			_, err := i.executeTask(task)
 			if err != nil {
 				fmt.Println("Error executing task:", err)
 				// Handle error sending response or retry logic if needed
 			} else {
-				fmt.Println("Task execution response:", response)
+				fmt.Println("Task execution response:")
 			}
 		}
 
