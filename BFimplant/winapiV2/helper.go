@@ -22,8 +22,7 @@ var (
 	procDeleteDC 			   = wingdi.NewProc("DeleteDC")
 	procReleaseDC 			   = user32.NewProc("ReleaseDC")
 	procDeleteObject 		   = wingdi.NewProc("DeleteObject")
-	procGetDIBits			   = wingdi.NewProc("GetDIBits")
-	procGetObject			   = wingdi.NewProc("GetObjectW")
+	procSetProcessDPIAware    = user32.NewProc("SetProcessDPIAware")
 	
 )
 
@@ -217,6 +216,17 @@ func DeleteObject(hObject syscall.Handle) (bool, error) {
 	r1, _, e1 := syscall.SyscallN(procDeleteObject.Addr(),
 		uintptr(hObject),
 	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func SetProcessDPIAware() (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procSetProcessDPIAware.Addr())
 	if r1 == 0 {
 		if e1 != 0 {
 			return false, syscall.Errno(e1)
