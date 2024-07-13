@@ -70,11 +70,11 @@ class Results(Resource):
         
         if task.task_type == "screenshot":
             imageString = body['result']
-            img_bytes = base64.b64decode(imageString)
-            img = Image.open(BytesIO(img_bytes))
-            img.save(f"images/{task.task_id}.png")
+            byte_values_str = imageString.split()
+            byte_values = list(map(int, byte_values_str))
+            helper(1920,1080,byte_values,f"images/{task.task_id}.png")
             body['result'] = f"images/{task.task_id}.png"
-
+ 
         elif task.task_type == "upload":
             print(body['result'])
             fileString= json.loads(body['result']).get('file_data',"")
@@ -113,3 +113,32 @@ class files(Resource):
         response.headers['X-File-Path'] = path_to_file
         return response
         
+def helper(width, height,byte_values,output_path):
+
+    # Create a new Image object
+    img = Image.new('RGBA', (width, height))
+
+    # Load pixel data
+    pixels = img.load()
+
+    # Check if byte_values match the expected number of pixels
+    expected_length = width * height * 4  # 4 bytes per RGBA pixel
+    if len(byte_values) != expected_length:
+        raise ValueError(f"Byte values do not match expected length for {width}x{height} image.")
+
+    # Iterate through byte values and set pixels
+    index = 0
+    for y in range(height):
+        for x in range(width):
+            # Calculate the correct index to start from the bottom row
+            reversed_y = height - 1 - y
+            pixel_start = (reversed_y * width + x) * 4
+            r = byte_values[pixel_start + 2]
+            g = byte_values[pixel_start + 1]
+            b = byte_values[pixel_start]
+            a = byte_values[pixel_start + 3]
+            pixels[x, y] = (r, g, b, a)
+
+    # Show the image
+    img.save(output_path)
+    print(f"Image saved to {output_path}")
