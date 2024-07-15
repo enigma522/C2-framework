@@ -29,7 +29,7 @@ def display_results(results):
 
 def display_imlants(results):
     table_data = []
-    headers = ['Implant Id', 'hostname', 'OS', 'ARCH', 'os_version']
+    headers = ['Implant Id', 'hostname', 'OS', 'ARCH', 'os_version',"online"]
     
     for result in results:
         row = [
@@ -37,7 +37,8 @@ def display_imlants(results):
             result.get('hostname', ''),
             result.get('os', ''),
             result.get('arch', ''),
-            result.get('os_version', '')
+            result.get('os_version', ''),
+            result.get('is_online','')
         ]
         table_data.append(row)
     print(tabulate.tabulate(table_data,headers=headers,tablefmt='grid'))
@@ -58,6 +59,7 @@ def get_implants(server_url, access_token):
         headers = {'Authorization': f'Bearer {access_token}'}
         response = requests.get(f'{server_url}/implants', headers=headers)
         response.raise_for_status()
+        
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Failed to retrieve implants: {e}")

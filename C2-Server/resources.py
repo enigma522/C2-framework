@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+from datetime import datetime, timedelta
 
 from flask import request, Response, send_file
 from flask_restful import Resource
@@ -10,6 +11,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 import base64
 from io import BytesIO
 from PIL import Image
+import time
+
+
+
+heartbeats = {}
+
+ONLINE_THRESHOLD = timedelta(seconds=20)
 
 
 class Tasks(Resource):
@@ -91,12 +99,22 @@ class Results(Resource):
         
         return Response(res.to_json(), mimetype="application/json", status=200)
         
-class implants(Resource):
+class Implants(Resource):
     @jwt_required()
     def get(self):
-        res = Implant.objects.to_json()  
+        res = Implant.objects.to_json()
+        now = datetime.now()
+        implants = json.loads(res)
+        print(heartbeats)
         
-        return Response(res, mimetype="application/json", status=200)
+        for implant in implants:
+            
+            implant_id = implant["implant_id"]
+            last_heartbeat = heartbeats.get(implant_id)
+            is_online = (now - last_heartbeat < ONLINE_THRESHOLD) if last_heartbeat else False
+            implant["is_online"] = is_online
+
+        return Response(json.dumps(implants), mimetype="application/json", status=200)
 
 class files(Resource):
     @jwt_required()
@@ -142,3 +160,21 @@ def helper(width, height,byte_values,output_path):
     # Show the image
     img.save(output_path)
     print(f"Image saved to {output_path}")
+
+
+class Heartbeat(Resource):
+    @jwt_required()
+    def get(self):
+        implant_id = get_jwt_identity()
+        heartbeats[implant_id] = datetime.now()
+        return '', 200
+    
+
+def cleanup_heartbeats():
+    while True:
+        now = datetime.now()
+        expired = [id for id, last_heartbeat in heartbeats.items() if now - last_heartbeat > ONLINE_THRESHOLD]
+        
+        for id in expired:
+            del heartbeats[id]
+        time.sleep(10)  

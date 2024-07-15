@@ -7,6 +7,7 @@ from flask_restful import Api
 from database.db import initialize_db
 from flask_jwt_extended import JWTManager, create_access_token
 from database.models import Implant, Profile
+import threading
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_Secret', 'super-secret-pass-5522-flag')
@@ -84,10 +85,14 @@ def profile_login():
 
 api.add_resource(resources.Tasks, '/tasks', endpoint='tasks')
 api.add_resource(resources.Results, '/results', endpoint='results')
-api.add_resource(resources.implants, '/implants', endpoint='implants')
+api.add_resource(resources.Implants, '/implants', endpoint='implants')
 api.add_resource(resources.files, '/get_file', endpoint='files')
+api.add_resource(resources.Heartbeat, '/heartbeat', endpoint='heartbeat')
+
+
 
 if __name__ == '__main__':
+    threading.Thread(target=resources.cleanup_heartbeats, daemon=True).start()
     port=int(os.getenv('Flask_Port', 5000))
     debug=bool(int(os.getenv('FLASK_DEBUG', 1)))
     host=os.getenv('FLASK_RUN_HOST', '0.0.0.0')
