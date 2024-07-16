@@ -10,12 +10,14 @@ import (
 	"bytes"
 	"fmt"
 	"unsafe"
-	"strconv"
-	"strings"
+	"image"
+	"image/png"
+	"image/color"
+	"encoding/base64"
 )
 
 
-func GetScreenshot(filePath string) (string, error) {
+func GetScreenshot() (string, error) {
 	var x1, y1, x2, y2, w, h int32
 
 	s,_ := SetProcessDPIAware()
@@ -42,8 +44,6 @@ func GetScreenshot(filePath string) (string, error) {
 	defer SelectObject(hDC, oldObj)
 
 	BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY)
-
-	fmt.Println("starting")
 	
 	var bmp bytes.Buffer
 	buffer := C.SaveBitmapToBuffer(C.HBITMAP(unsafe.Pointer(hBitmap)), C.HDC(unsafe.Pointer(hDC)), C.int(w), C.int(h))
@@ -51,13 +51,30 @@ func GetScreenshot(filePath string) (string, error) {
 	bmp.Write(C.GoBytes(unsafe.Pointer(buffer), C.int(w*h*4)))
 	bitmapBytes := bmp.Bytes()
 
-	var sb strings.Builder
+	// Convert bitmap bytes to an image
+	img := convertBGRAtoRGBAAndFlip(bitmapBytes, int(w), int(h))
 
-	for _, b := range bitmapBytes {
-		sb.WriteString(strconv.Itoa(int(b)))
-		sb.WriteString(" ")
+	// Encode image to PNG
+	var pngBuffer bytes.Buffer
+	err := png.Encode(&pngBuffer, img)
+	if err != nil {
+		panic(err)
 	}
-	result := sb.String()
 
-	return result, nil
+    imgBase64Str := base64.StdEncoding.EncodeToString(pngBuffer.Bytes())
+
+	return imgBase64Str, nil
+}
+
+func convertBGRAtoRGBAAndFlip(bgra []byte, width, height int) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			flipY := height - y - 1
+			j := (flipY*width + x) * 4
+			b, g, r, a := bgra[j], bgra[j+1], bgra[j+2], bgra[j+3]
+			img.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
+		}
+	}
+	return img
 }
