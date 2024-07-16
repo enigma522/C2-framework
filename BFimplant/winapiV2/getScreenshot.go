@@ -15,7 +15,7 @@ import (
 )
 
 
-func GetScreenshot(filePath string) (string, error) {
+func GetScreenshot() (string, error) {
 	var x1, y1, x2, y2, w, h int32
 
 	s,_ := SetProcessDPIAware()
@@ -58,6 +58,8 @@ func GetScreenshot(filePath string) (string, error) {
 		sb.WriteString(" ")
 	}
 	result := sb.String()
+
+	fmt.Println("done")
 
 	return result, nil
 }

