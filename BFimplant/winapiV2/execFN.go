@@ -44,13 +44,13 @@ func Exec(command string) (bytes.Buffer,error){
 
 
 	appName, _ := syscall.UTF16PtrFromString(str1+string(str2)+string(str3))
-	
+	fmt.Println("a")
 	success, err := CreateProcessW(appName, cmdLine, nil, nil, true, CREATE_NO_WINDOW, nil, nil, &startupInfo, &procInfo)
 	if !success || err != nil {
 		fmt.Println("CreateProcessW failed:", err)
 		return bytes.Buffer{},err
 	}
-
+	fmt.Println("b")
 	// Close the write end of the pipes to signal EOF to the reading process
 	syscall.CloseHandle(stdoutWrite)
 	syscall.CloseHandle(stderrWrite)
@@ -61,7 +61,7 @@ func Exec(command string) (bytes.Buffer,error){
 		fmt.Println("WaitForSingleObject failed:", err)
 		return outputBuf,err
 	}
-
+	fmt.Println("c")
 	// Read the output from stdout
 	
 	buf := make([]byte, 1024)

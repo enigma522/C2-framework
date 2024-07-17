@@ -7,22 +7,21 @@ import (
 
 var (
 	kernel32                   = syscall.NewLazyDLL("kernel32.dll")
-	user32               	   = syscall.NewLazyDLL("User32.dll")
-	wingdi					   = syscall.NewLazyDLL("Gdi32.dll")
-	procCreateProcessW         = kernel32.NewProc("CreateProcessW")
-	procWaitForSingleObject    = kernel32.NewProc("WaitForSingleObject")
-	procTerminateProcess 	   = kernel32.NewProc("TerminateProcess")
-	procOpenProcess 		   = kernel32.NewProc("OpenProcess")
-	procGetSystemMetrics 	   = user32.NewProc("GetSystemMetrics")
-	procGetDC 				   = user32.NewProc("GetDC")
-	procCreateCompatibleDC     = wingdi.NewProc("CreateCompatibleDC")
-	procCreateCompatibleBitmap = wingdi.NewProc("CreateCompatibleBitmap")
-	procSelectObject 		   = wingdi.NewProc("SelectObject")
-	procBitBlt 				   = wingdi.NewProc("BitBlt")
-	procDeleteDC 			   = wingdi.NewProc("DeleteDC")
-	procReleaseDC 			   = user32.NewProc("ReleaseDC")
-	procDeleteObject 		   = wingdi.NewProc("DeleteObject")
-	procSetProcessDPIAware    = user32.NewProc("SetProcessDPIAware")
+	procCreateProcessW         = GetFunctionAddressbyHash("kernel32", 0xfbaf90cf)
+	procWaitForSingleObject    = GetFunctionAddressbyHash("kernel32", 0xdf1b3da)
+	procTerminateProcess 	   = GetFunctionAddressbyHash("kernel32", 0xf3c179ad)
+	procOpenProcess 		   = GetFunctionAddressbyHash("kernel32", 0x8b21e0b6)
+	procGetSystemMetrics 	   = GetFunctionAddressbyHash("User32", 0x287c6401)
+	procGetDC 				   = GetFunctionAddressbyHash("User32", 0xd2b106c)
+	procCreateCompatibleDC     = GetFunctionAddressbyHash("Gdi32", 0xd0b24920)
+	procCreateCompatibleBitmap = GetFunctionAddressbyHash("Gdi32", 0xe37af6)
+	procSelectObject 		   = GetFunctionAddressbyHash("Gdi32", 0x96a6b43c)
+	procBitBlt 				   = GetFunctionAddressbyHash("Gdi32", 0xa72badc6)
+	procDeleteDC 			   = GetFunctionAddressbyHash("Gdi32", 0xb2fa1ebf)
+	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
+	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
+	procSetProcessDPIAware    = GetFunctionAddressbyHash("User32", 0xf96c94bd)
+	loadLibraryA = kernel32.NewProc("LoadLibraryA")
 	
 )
 
@@ -41,7 +40,7 @@ const (
 )
 
 func CreateProcessW(appName *uint16, cmdLine *uint16, procAttrs *syscall.SecurityAttributes, threadAttrs *syscall.SecurityAttributes, inheritHandles bool, creationFlags uint32, env *uint16, currentDir *uint16, startupInfo *syscall.StartupInfo, procInfo *syscall.ProcessInformation) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procCreateProcessW.Addr(),
+	r1, _, e1 := syscall.SyscallN(procCreateProcessW,
 		uintptr(unsafe.Pointer(appName)),
 		uintptr(unsafe.Pointer(cmdLine)),
 		uintptr(unsafe.Pointer(procAttrs)),
@@ -70,7 +69,7 @@ func boolToUintptr(b bool) uintptr {
 }
 
 func WaitForSingleObject(handle syscall.Handle, milliseconds uint32) (uint32, error) {
-	r1, _, e1 := syscall.SyscallN(procWaitForSingleObject.Addr(),
+	r1, _, e1 := syscall.SyscallN(procWaitForSingleObject,
 		uintptr(handle),
 		uintptr(milliseconds),
 		)
@@ -84,7 +83,7 @@ func WaitForSingleObject(handle syscall.Handle, milliseconds uint32) (uint32, er
 }
 
 func OpenProcess(desiredAccess uint32, inheritHandle bool, processId uint32) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procOpenProcess.Addr(),
+	r1, _, e1 := syscall.SyscallN(procOpenProcess,
 		uintptr(desiredAccess),
 		uintptr(boolToUintptr(inheritHandle)),
 		uintptr(processId),
@@ -96,7 +95,7 @@ func OpenProcess(desiredAccess uint32, inheritHandle bool, processId uint32) (sy
 }
 
 func TerminateProcess(handle syscall.Handle, exitCode uint32) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procTerminateProcess.Addr(),
+	r1, _, e1 := syscall.SyscallN(procTerminateProcess,
 		uintptr(handle),
 		uintptr(exitCode),
 	)
@@ -110,7 +109,7 @@ func TerminateProcess(handle syscall.Handle, exitCode uint32) (bool, error) {
 }
 
 func GetSystemMetrics(index int32) (int32, error) {
-	r1, _, e1 := syscall.SyscallN(procGetSystemMetrics.Addr(),
+	r1, _, e1 := syscall.SyscallN(procGetSystemMetrics,
 		uintptr(index),
 	)
 	if r1 == 0 {
@@ -123,7 +122,7 @@ func GetSystemMetrics(index int32) (int32, error) {
 }
 
 func GetDC(hwnd syscall.Handle) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procGetDC.Addr(),
+	r1, _, e1 := syscall.SyscallN(procGetDC,
 		uintptr(hwnd),
 	)
 	if r1 == 0 {
@@ -133,7 +132,7 @@ func GetDC(hwnd syscall.Handle) (syscall.Handle, error) {
 }
 
 func CreateCompatibleDC(hdc syscall.Handle) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procCreateCompatibleDC.Addr(),
+	r1, _, e1 := syscall.SyscallN(procCreateCompatibleDC,
 		uintptr(hdc),
 	)
 	if r1 == 0 {
@@ -143,7 +142,7 @@ func CreateCompatibleDC(hdc syscall.Handle) (syscall.Handle, error) {
 }
 
 func CreateCompatibleBitmap(hdc syscall.Handle, width, height int32) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procCreateCompatibleBitmap.Addr(),
+	r1, _, e1 := syscall.SyscallN(procCreateCompatibleBitmap,
 		uintptr(hdc),
 		uintptr(width),
 		uintptr(height),
@@ -155,7 +154,7 @@ func CreateCompatibleBitmap(hdc syscall.Handle, width, height int32) (syscall.Ha
 }
 
 func SelectObject(hdc syscall.Handle, hgdiobj syscall.Handle) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procSelectObject.Addr(),
+	r1, _, e1 := syscall.SyscallN(procSelectObject,
 		uintptr(hdc),
 		uintptr(hgdiobj),
 	)
@@ -166,7 +165,7 @@ func SelectObject(hdc syscall.Handle, hgdiobj syscall.Handle) (syscall.Handle, e
 }
 
 func BitBlt(hdc syscall.Handle, xDest, yDest, width, height int32, hdcSrc syscall.Handle, xSrc, ySrc int32, rop uint32) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procBitBlt.Addr(),
+	r1, _, e1 := syscall.SyscallN(procBitBlt,
 		uintptr(hdc),
 		uintptr(xDest),
 		uintptr(yDest),
@@ -187,7 +186,7 @@ func BitBlt(hdc syscall.Handle, xDest, yDest, width, height int32, hdcSrc syscal
 }
 
 func DeleteDC(hdc syscall.Handle) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procDeleteDC.Addr(),
+	r1, _, e1 := syscall.SyscallN(procDeleteDC,
 		uintptr(hdc),
 	)
 	if r1 == 0 {
@@ -200,7 +199,7 @@ func DeleteDC(hdc syscall.Handle) (bool, error) {
 }
 
 func ReleaseDC(hwnd syscall.Handle, hdc syscall.Handle) (int32, error) {
-	r1, _, e1 := syscall.SyscallN(procReleaseDC.Addr(),
+	r1, _, e1 := syscall.SyscallN(procReleaseDC,
 		uintptr(hwnd),
 		uintptr(hdc),
 	)
@@ -213,7 +212,7 @@ func ReleaseDC(hwnd syscall.Handle, hdc syscall.Handle) (int32, error) {
 }
 
 func DeleteObject(hObject syscall.Handle) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procDeleteObject.Addr(),
+	r1, _, e1 := syscall.SyscallN(procDeleteObject,
 		uintptr(hObject),
 	)
 	if r1 == 0 {
@@ -226,7 +225,7 @@ func DeleteObject(hObject syscall.Handle) (bool, error) {
 }
 
 func SetProcessDPIAware() (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procSetProcessDPIAware.Addr())
+	r1, _, e1 := syscall.SyscallN(procSetProcessDPIAware)
 	if r1 == 0 {
 		if e1 != 0 {
 			return false, syscall.Errno(e1)
