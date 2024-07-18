@@ -5,6 +5,18 @@ import (
 	"unsafe"
 )
 
+type BITMAPINFO struct {
+	BmiHeader BITMAPINFOHEADER
+	BmiColors *RGBQUAD
+}
+
+type RGBQUAD struct {
+	RgbBlue     byte
+	RgbGreen    byte
+	RgbRed      byte
+	RgbReserved byte
+}
+
 var (
 	kernel32                   = syscall.NewLazyDLL("kernel32.dll")
 	procCreateProcessW         = GetFunctionAddressbyHash("kernel32", 0xfbaf90cf)
@@ -21,12 +33,16 @@ var (
 	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
 	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
 	procSetProcessDPIAware	   = GetFunctionAddressbyHash("User32", 0xf96c94bd)
+	procGetDIBits 			   = GetFunctionAddressbyHash("Gdi32", 0xd4676c24)
 	loadLibraryA               = kernel32.NewProc("LoadLibraryA")
 	procCreateFileW 		   = GetFunctionAddressbyHash("kernel32", 0x687d2110)
 	procWriteFile 			   = GetFunctionAddressbyHash("kernel32", 0xf1d207d0)
 	procReadFile 			   = GetFunctionAddressbyHash("kernel32", 0x84d15061)
 	procGetFileSize 		   = GetFunctionAddressbyHash("kernel32", 0x7b813820)
-	
+	procGlobalAlloc			   = GetFunctionAddressbyHash("kernel32", 0x38379421)
+	procGlobalFree			   = GetFunctionAddressbyHash("kernel32", 0x47886698)
+	procGlobalLock			   = GetFunctionAddressbyHash("kernel32", 0x478ba3df)
+	procGlobalUnlock		   = GetFunctionAddressbyHash("kernel32", 0x6df57622)
 )
 
 const (
@@ -45,6 +61,9 @@ const (
 	OPEN_EXISTING 			= 3
 	OPEN_ALWAYS				= 4
 	FILE_ATTRIBUTE_NORMAL	= 0x80
+	BI_RGB 					= 0
+	DIB_RGB_COLORS 			= 0
+	GMEM_MOVEABLE 			= 0x0002
 
 )
 
@@ -306,4 +325,69 @@ func GetFileSize (handle syscall.Handle, fileSizeHigh *uint32) (uint32, error) {
 		return 0, syscall.EINVAL
 	}
 	return uint32(r1), nil
+}
+
+func GetDIBits (hdc syscall.Handle, hbitmap syscall.Handle, startScan, numScans uint32, bits *byte, info *BITMAPINFO, colorUse uint32) (int32, error) {
+	r1, _, e1 := syscall.SyscallN(procGetDIBits,
+		uintptr(hdc),
+		uintptr(hbitmap),
+		uintptr(startScan),
+		uintptr(numScans),
+		uintptr(unsafe.Pointer(bits)),
+		uintptr(unsafe.Pointer(info)),
+		uintptr(colorUse),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return -100, syscall.Errno(e1)
+		}
+	}
+	return int32(r1), nil
+}
+
+func GlobalAlloc (flags uint32, bytes uintptr) (syscall.Handle, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalAlloc,
+		uintptr(flags),
+		uintptr(bytes),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return syscall.Handle(r1), nil
+}
+
+func GlobalFree (hmem syscall.Handle) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalFree,
+		uintptr(hmem),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func GlobalLock (hmem syscall.Handle) (uintptr, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalLock,
+		uintptr(hmem),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return uintptr(r1), nil
+}
+
+func GlobalUnlock (hmem syscall.Handle) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalUnlock,
+		uintptr(hmem),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
 }

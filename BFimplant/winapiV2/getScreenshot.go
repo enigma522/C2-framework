@@ -1,15 +1,28 @@
 package winapiV2
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
-	win "github.com/lxn/win"
+	"fmt"
 	"image"
 	"image/png"
 	"unsafe"
-	"encoding/base64"
-	"bytes"
-	"fmt"
 )
+
+type BITMAPINFOHEADER struct {
+	BiSize          uint32
+	BiWidth         int32
+	BiHeight        int32
+	BiPlanes        uint16
+	BiBitCount      uint16
+	BiCompression   uint32
+	BiSizeImage     uint32
+	BiXPelsPerMeter int32
+	BiYPelsPerMeter int32
+	BiClrUsed       uint32
+	BiClrImportant  uint32
+}
 
 func GetScreenshot() (string, error) {
 
@@ -28,51 +41,54 @@ func GetScreenshot() (string, error) {
 
 	img := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
 
-	hdc := win.GetDC(0)
+	hdc,_ := GetDC(0)
 	if hdc == 0 {
 		return "", errors.New("GetDC failed")
 	}
-	defer win.ReleaseDC(0, hdc)
+	defer ReleaseDC(0, hdc)
 
-	memory_device := win.CreateCompatibleDC(hdc)
+	memory_device,_ := CreateCompatibleDC(hdc)
 	if memory_device == 0 {
 		return "", errors.New("CreateCompatibleDC failed")
 	}
-	defer win.DeleteDC(memory_device)
+	defer DeleteDC(memory_device)
 
-	bitmap := win.CreateCompatibleBitmap(hdc, int32(width), int32(height))
+	bitmap,_ := CreateCompatibleBitmap(hdc, int32(width), int32(height))
 	if bitmap == 0 {
 		return "", errors.New("CreateCompatibleBitmap failed")
 	}
-	defer win.DeleteObject(win.HGDIOBJ(bitmap))
+	defer DeleteObject(bitmap)
 
-	var header win.BITMAPINFOHEADER
+	var header BITMAPINFOHEADER
 	header.BiSize = uint32(unsafe.Sizeof(header))
 	header.BiPlanes = 1
 	header.BiBitCount = 32
 	header.BiWidth = int32(width)
 	header.BiHeight = int32(-height)
-	header.BiCompression = win.BI_RGB
+	header.BiCompression = BI_RGB
 	header.BiSizeImage = 0
 
 
 	bitmapDataSize := uintptr(((int64(width)*int64(header.BiBitCount) + 31) / 32) * 4 * int64(height))
-	hmem := win.GlobalAlloc(win.GMEM_MOVEABLE, bitmapDataSize)
-	defer win.GlobalFree(hmem)
-	memptr := win.GlobalLock(hmem)
-	defer win.GlobalUnlock(hmem)
+	hmem,_ := GlobalAlloc(GMEM_MOVEABLE, bitmapDataSize)
+	defer GlobalFree(hmem)
+	memptr,_ := GlobalLock(hmem)
+	defer GlobalUnlock(hmem)
 
-	old := win.SelectObject(memory_device, win.HGDIOBJ(bitmap))
+	old,_ := SelectObject(memory_device, bitmap)
 	if old == 0 {
 		return "", errors.New("SelectObject failed")
 	}
-	defer win.SelectObject(memory_device, old)
+	defer SelectObject(memory_device, old)
 
-	if !win.BitBlt(memory_device, 0, 0, int32(width), int32(height), hdc, x1, y1, win.SRCCOPY) {
+	succ,_:=BitBlt(memory_device, 0, 0, int32(width), int32(height), hdc, x1, y1, SRCCOPY)
+
+	if !succ {
 		return "", errors.New("BitBlt failed")
 	}
 
-	if win.GetDIBits(hdc, bitmap, 0, uint32(height), (*uint8)(memptr), (*win.BITMAPINFO)(unsafe.Pointer(&header)), win.DIB_RGB_COLORS) == 0 {
+	ress, _ :=GetDIBits(hdc, bitmap, 0, uint32(height), (*uint8)(unsafe.Pointer(memptr)), (*BITMAPINFO)(unsafe.Pointer(&header)), DIB_RGB_COLORS)
+	if ress == 0 {
 		return "", errors.New("GetDIBits failed")
 	}
 
