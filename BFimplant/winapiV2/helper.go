@@ -20,23 +20,34 @@ var (
 	procDeleteDC 			   = GetFunctionAddressbyHash("Gdi32", 0xb2fa1ebf)
 	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
 	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
-	procSetProcessDPIAware    = GetFunctionAddressbyHash("User32", 0xf96c94bd)
+	procSetProcessDPIAware	   = GetFunctionAddressbyHash("User32", 0xf96c94bd)
 	loadLibraryA = kernel32.NewProc("LoadLibraryA")
+	procCreateFileW = kernel32.NewProc("CreateFileW")
+	procWriteFile = kernel32.NewProc("WriteFile")
+	procReadFile = kernel32.NewProc("ReadFile")
+	procGetFileSize = kernel32.NewProc("GetFileSize")
 	
 )
 
 const (
-	CREATE_NEW_CONSOLE = 0x00000010
-	CREATE_NO_WINDOW   = 0x08000000
-	PROCESS_ALL_ACCESS  = 0x1F0FFF
-	PROCESS_TERMINATE   = 0x0001
-	SM_XVIRTUALSCREEN   = 76
-	SM_YVIRTUALSCREEN   = 77
-	SM_CXVIRTUALSCREEN  = 78
-	SM_CYVIRTUALSCREEN  = 79
-	SRCCOPY			 = 0x00CC0020
-	DIB_RGB_COLORS 	 = 0
-	BI_RGB			 = 0	
+	CREATE_NEW_CONSOLE		= 0x00000010
+	CREATE_NO_WINDOW		= 0x08000000
+	PROCESS_ALL_ACCESS  	= 0x1F0FFF
+	PROCESS_TERMINATE   	= 0x0001
+	SM_XVIRTUALSCREEN   	= 76
+	SM_YVIRTUALSCREEN   	= 77
+	SM_CXVIRTUALSCREEN  	= 78
+	SM_CYVIRTUALSCREEN  	= 79
+	SRCCOPY					= 0x00CC0020
+	DIB_RGB_COLORS 			= 0
+	BI_RGB					= 0	
+	GENERIC_WRITE 			= 0x40000000
+	GENERIC_READ 			= 0x80000000
+	CREATE_ALWAYS 			= 2
+	OPEN_EXISTING 			= 3
+	OPEN_ALWAYS				= 4
+	FILE_ATTRIBUTE_NORMAL	= 0x80
+
 )
 
 func CreateProcessW(appName *uint16, cmdLine *uint16, procAttrs *syscall.SecurityAttributes, threadAttrs *syscall.SecurityAttributes, inheritHandles bool, creationFlags uint32, env *uint16, currentDir *uint16, startupInfo *syscall.StartupInfo, procInfo *syscall.ProcessInformation) (bool, error) {
@@ -233,4 +244,68 @@ func SetProcessDPIAware() (bool, error) {
 		return false, syscall.EINVAL
 	}
 	return true, nil
+}
+
+func CreateFile (fileName *uint16, desiredAccess uint32, shareMode uint32, securityAttributes *syscall.SecurityAttributes, creationDisposition uint32, flagsAndAttributes uint32, templateFile syscall.Handle) (syscall.Handle, error) {
+	r1, _, e1 := syscall.SyscallN(procCreateFileW.Addr(),
+		uintptr(unsafe.Pointer(fileName)),
+		uintptr(desiredAccess),
+		uintptr(shareMode),
+		uintptr(unsafe.Pointer(securityAttributes)),
+		uintptr(creationDisposition),
+		uintptr(flagsAndAttributes),
+		uintptr(templateFile),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return syscall.Handle(r1), nil
+}
+
+func WriteFile (handle syscall.Handle, buffer *byte, numberOfBytesToWrite uint32, numberOfBytesWritten *uint32, overlapped *syscall.Overlapped) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procWriteFile.Addr(),
+		uintptr(handle),
+		uintptr(unsafe.Pointer(buffer)),
+		uintptr(numberOfBytesToWrite),
+		uintptr(unsafe.Pointer(numberOfBytesWritten)),
+		uintptr(unsafe.Pointer(overlapped)),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func ReadFile (handle syscall.Handle, buffer *byte, numberOfBytesToRead uint32, numberOfBytesRead *uint32, overlapped *syscall.Overlapped) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procReadFile.Addr(),
+		uintptr(handle),
+		uintptr(unsafe.Pointer(buffer)),
+		uintptr(numberOfBytesToRead),
+		uintptr(unsafe.Pointer(numberOfBytesRead)),
+		uintptr(unsafe.Pointer(overlapped)),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func GetFileSize (handle syscall.Handle, fileSizeHigh *uint32) (uint32, error) {
+	r1, _, e1 := syscall.SyscallN(procGetFileSize.Addr(),
+		uintptr(handle),
+		uintptr(unsafe.Pointer(fileSizeHigh)),
+	)
+	if r1 == 0xFFFFFFFF {
+		if e1 != 0 {
+			return 0, syscall.Errno(e1)
+		}
+		return 0, syscall.EINVAL
+	}
+	return uint32(r1), nil
 }

