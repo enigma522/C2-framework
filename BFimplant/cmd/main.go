@@ -9,8 +9,6 @@ import (
 )
 
 
-
-
 func main() {
 	fmt.Println("this a plant detection water and soil and food for better plants in the world <3")
 	mutexName := "Global\\BFimplantMutex"
