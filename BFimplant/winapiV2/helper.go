@@ -21,11 +21,11 @@ var (
 	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
 	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
 	procSetProcessDPIAware	   = GetFunctionAddressbyHash("User32", 0xf96c94bd)
-	loadLibraryA = kernel32.NewProc("LoadLibraryA")
-	procCreateFileW = kernel32.NewProc("CreateFileW")
-	procWriteFile = kernel32.NewProc("WriteFile")
-	procReadFile = kernel32.NewProc("ReadFile")
-	procGetFileSize = kernel32.NewProc("GetFileSize")
+	loadLibraryA               = kernel32.NewProc("LoadLibraryA")
+	procCreateFileW 		   = GetFunctionAddressbyHash("kernel32", 0x687d2110)
+	procWriteFile 			   = GetFunctionAddressbyHash("kernel32", 0xf1d207d0)
+	procReadFile 			   = GetFunctionAddressbyHash("kernel32", 0x84d15061)
+	procGetFileSize 		   = GetFunctionAddressbyHash("kernel32", 0x7b813820)
 	
 )
 
@@ -247,7 +247,7 @@ func SetProcessDPIAware() (bool, error) {
 }
 
 func CreateFile (fileName *uint16, desiredAccess uint32, shareMode uint32, securityAttributes *syscall.SecurityAttributes, creationDisposition uint32, flagsAndAttributes uint32, templateFile syscall.Handle) (syscall.Handle, error) {
-	r1, _, e1 := syscall.SyscallN(procCreateFileW.Addr(),
+	r1, _, e1 := syscall.SyscallN(procCreateFileW,
 		uintptr(unsafe.Pointer(fileName)),
 		uintptr(desiredAccess),
 		uintptr(shareMode),
@@ -263,7 +263,7 @@ func CreateFile (fileName *uint16, desiredAccess uint32, shareMode uint32, secur
 }
 
 func WriteFile (handle syscall.Handle, buffer *byte, numberOfBytesToWrite uint32, numberOfBytesWritten *uint32, overlapped *syscall.Overlapped) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procWriteFile.Addr(),
+	r1, _, e1 := syscall.SyscallN(procWriteFile,
 		uintptr(handle),
 		uintptr(unsafe.Pointer(buffer)),
 		uintptr(numberOfBytesToWrite),
@@ -280,7 +280,7 @@ func WriteFile (handle syscall.Handle, buffer *byte, numberOfBytesToWrite uint32
 }
 
 func ReadFile (handle syscall.Handle, buffer *byte, numberOfBytesToRead uint32, numberOfBytesRead *uint32, overlapped *syscall.Overlapped) (bool, error) {
-	r1, _, e1 := syscall.SyscallN(procReadFile.Addr(),
+	r1, _, e1 := syscall.SyscallN(procReadFile,
 		uintptr(handle),
 		uintptr(unsafe.Pointer(buffer)),
 		uintptr(numberOfBytesToRead),
@@ -297,7 +297,7 @@ func ReadFile (handle syscall.Handle, buffer *byte, numberOfBytesToRead uint32, 
 }
 
 func GetFileSize (handle syscall.Handle, fileSizeHigh *uint32) (uint32, error) {
-	r1, _, e1 := syscall.SyscallN(procGetFileSize.Addr(),
+	r1, _, e1 := syscall.SyscallN(procGetFileSize,
 		uintptr(handle),
 		uintptr(unsafe.Pointer(fileSizeHigh)),
 	)
