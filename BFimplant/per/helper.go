@@ -113,3 +113,13 @@ func CopyFile(src, dst string) error {
 	}
 	return nil
 }
+
+
+func DecryptString(s string) string {
+	key := byte(0x45)
+	decoded := make([]byte, len(s))
+	for i := range s {
+		decoded[i] = s[i] ^ key
+	}
+	return string(decoded)
+}
