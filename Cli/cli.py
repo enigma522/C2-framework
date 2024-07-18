@@ -178,13 +178,6 @@ def main():
                     elif args.task_type == 'upload':
                         args.file_path = input("[?] Enter the file path to upload:\n>> ").strip()
                         post_task(args.server_url, args.implant_id, args.task_type, args.file_path, access_token)
-                    time.sleep(5)
-                    results = get_results(args.server_url, args.implant_id, access_token)
-                    display_results(results)
-
-                    if results:
-                        display_results(results[-1])
-
                         
                     
             elif args.action == 'results':

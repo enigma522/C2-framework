@@ -1,23 +1,19 @@
 package winapiV2
 
-/*
-#cgo LDFLAGS: -lgdi32
-#include "hello.c"
-*/
-import "C"
-
 import (
-	"bytes"
-	"encoding/base64"
-	"fmt"
+	"errors"
+	win "github.com/lxn/win"
 	"image"
-	"image/color"
 	"image/png"
 	"unsafe"
+	"encoding/base64"
+	"bytes"
+	"fmt"
 )
 
 func GetScreenshot() (string, error) {
-	var x1, y1, x2, y2, w, h int32
+
+	var x1, y1, x2, y2, width, height int32
 
 	s, _ := SetProcessDPIAware()
 	if !s {
@@ -27,33 +23,74 @@ func GetScreenshot() (string, error) {
 	y1, _ = GetSystemMetrics(SM_YVIRTUALSCREEN)
 	x2, _ = GetSystemMetrics(SM_CXVIRTUALSCREEN)
 	y2, _ = GetSystemMetrics(SM_CYVIRTUALSCREEN)
-	w = x2 - x1
-	h = y2 - y1
+	width = x2 - x1
+	height = y2 - y1
 
-	hScreen, _ := GetDC(0)
-	defer ReleaseDC(0, hScreen)
+	img := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
 
-	hDC, _ := CreateCompatibleDC(hScreen)
-	defer DeleteDC(hDC)
+	hdc := win.GetDC(0)
+	if hdc == 0 {
+		return "", errors.New("GetDC failed")
+	}
+	defer win.ReleaseDC(0, hdc)
 
-	hBitmap, _ := CreateCompatibleBitmap(hScreen, w, h)
-	defer DeleteObject(hBitmap)
+	memory_device := win.CreateCompatibleDC(hdc)
+	if memory_device == 0 {
+		return "", errors.New("CreateCompatibleDC failed")
+	}
+	defer win.DeleteDC(memory_device)
 
-	oldObj, _ := SelectObject(hDC, hBitmap)
-	defer SelectObject(hDC, oldObj)
+	bitmap := win.CreateCompatibleBitmap(hdc, int32(width), int32(height))
+	if bitmap == 0 {
+		return "", errors.New("CreateCompatibleBitmap failed")
+	}
+	defer win.DeleteObject(win.HGDIOBJ(bitmap))
 
-	BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY)
+	var header win.BITMAPINFOHEADER
+	header.BiSize = uint32(unsafe.Sizeof(header))
+	header.BiPlanes = 1
+	header.BiBitCount = 32
+	header.BiWidth = int32(width)
+	header.BiHeight = int32(-height)
+	header.BiCompression = win.BI_RGB
+	header.BiSizeImage = 0
 
-	var bmp bytes.Buffer
-	buffer := C.SaveBitmapToBuffer(C.HBITMAP(unsafe.Pointer(hBitmap)), C.HDC(unsafe.Pointer(hDC)), C.int(w), C.int(h))
 
-	bmp.Write(C.GoBytes(unsafe.Pointer(buffer), C.int(w*h*4)))
-	bitmapBytes := bmp.Bytes()
+	bitmapDataSize := uintptr(((int64(width)*int64(header.BiBitCount) + 31) / 32) * 4 * int64(height))
+	hmem := win.GlobalAlloc(win.GMEM_MOVEABLE, bitmapDataSize)
+	defer win.GlobalFree(hmem)
+	memptr := win.GlobalLock(hmem)
+	defer win.GlobalUnlock(hmem)
 
-	// Convert bitmap bytes to an image
-	img := convertBGRAtoRGBAAndFlip(bitmapBytes, int(w), int(h))
+	old := win.SelectObject(memory_device, win.HGDIOBJ(bitmap))
+	if old == 0 {
+		return "", errors.New("SelectObject failed")
+	}
+	defer win.SelectObject(memory_device, old)
 
-	// Encode image to PNG
+	if !win.BitBlt(memory_device, 0, 0, int32(width), int32(height), hdc, x1, y1, win.SRCCOPY) {
+		return "", errors.New("BitBlt failed")
+	}
+
+	if win.GetDIBits(hdc, bitmap, 0, uint32(height), (*uint8)(memptr), (*win.BITMAPINFO)(unsafe.Pointer(&header)), win.DIB_RGB_COLORS) == 0 {
+		return "", errors.New("GetDIBits failed")
+	}
+
+	i := 0
+	src := uintptr(memptr)
+	for y := 0; y < int(height); y++ {
+		for x := 0; x < int(width); x++ {
+			v0 := *(*uint8)(unsafe.Pointer(src))
+			v1 := *(*uint8)(unsafe.Pointer(src + 1))
+			v2 := *(*uint8)(unsafe.Pointer(src + 2))
+
+			// BGRA => RGBA, and set A to 255
+			img.Pix[i], img.Pix[i+1], img.Pix[i+2], img.Pix[i+3] = v2, v1, v0, 255
+
+			i += 4
+			src += 4
+		}
+	}
 	var pngBuffer bytes.Buffer
 	err := png.Encode(&pngBuffer, img)
 	if err != nil {
@@ -63,17 +100,4 @@ func GetScreenshot() (string, error) {
 	imgBase64Str := base64.StdEncoding.EncodeToString(pngBuffer.Bytes())
 
 	return imgBase64Str, nil
-}
-
-func convertBGRAtoRGBAAndFlip(bgra []byte, width, height int) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			flipY := height - y - 1
-			j := (flipY*width + x) * 4
-			b, g, r, a := bgra[j], bgra[j+1], bgra[j+2], bgra[j+3]
-			img.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
-		}
-	}
-	return img
 }
