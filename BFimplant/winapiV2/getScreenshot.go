@@ -1,23 +1,32 @@
 package winapiV2
 
-/*
-#cgo LDFLAGS: -lgdi32
-#include "hello.c"
-*/
-import "C"
-
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"image/png"
 	"unsafe"
 )
 
+type BITMAPINFOHEADER struct {
+	BiSize          uint32
+	BiWidth         int32
+	BiHeight        int32
+	BiPlanes        uint16
+	BiBitCount      uint16
+	BiCompression   uint32
+	BiSizeImage     uint32
+	BiXPelsPerMeter int32
+	BiYPelsPerMeter int32
+	BiClrUsed       uint32
+	BiClrImportant  uint32
+}
+
 func GetScreenshot() (string, error) {
-	var x1, y1, x2, y2, w, h int32
+
+	var x1, y1, x2, y2, width, height int32
 
 	s, _ := SetProcessDPIAware()
 	if !s {
@@ -27,33 +36,77 @@ func GetScreenshot() (string, error) {
 	y1, _ = GetSystemMetrics(SM_YVIRTUALSCREEN)
 	x2, _ = GetSystemMetrics(SM_CXVIRTUALSCREEN)
 	y2, _ = GetSystemMetrics(SM_CYVIRTUALSCREEN)
-	w = x2 - x1
-	h = y2 - y1
+	width = x2 - x1
+	height = y2 - y1
 
-	hScreen, _ := GetDC(0)
-	defer ReleaseDC(0, hScreen)
+	img := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
 
-	hDC, _ := CreateCompatibleDC(hScreen)
-	defer DeleteDC(hDC)
+	hdc,_ := GetDC(0)
+	if hdc == 0 {
+		return "", errors.New("GetDC failed")
+	}
+	defer ReleaseDC(0, hdc)
 
-	hBitmap, _ := CreateCompatibleBitmap(hScreen, w, h)
-	defer DeleteObject(hBitmap)
+	memory_device,_ := CreateCompatibleDC(hdc)
+	if memory_device == 0 {
+		return "", errors.New("CreateCompatibleDC failed")
+	}
+	defer DeleteDC(memory_device)
 
-	oldObj, _ := SelectObject(hDC, hBitmap)
-	defer SelectObject(hDC, oldObj)
+	bitmap,_ := CreateCompatibleBitmap(hdc, int32(width), int32(height))
+	if bitmap == 0 {
+		return "", errors.New("CreateCompatibleBitmap failed")
+	}
+	defer DeleteObject(bitmap)
 
-	BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY)
+	var header BITMAPINFOHEADER
+	header.BiSize = uint32(unsafe.Sizeof(header))
+	header.BiPlanes = 1
+	header.BiBitCount = 32
+	header.BiWidth = int32(width)
+	header.BiHeight = int32(-height)
+	header.BiCompression = BI_RGB
+	header.BiSizeImage = 0
 
-	var bmp bytes.Buffer
-	buffer := C.SaveBitmapToBuffer(C.HBITMAP(unsafe.Pointer(hBitmap)), C.HDC(unsafe.Pointer(hDC)), C.int(w), C.int(h))
 
-	bmp.Write(C.GoBytes(unsafe.Pointer(buffer), C.int(w*h*4)))
-	bitmapBytes := bmp.Bytes()
+	bitmapDataSize := uintptr(((int64(width)*int64(header.BiBitCount) + 31) / 32) * 4 * int64(height))
+	hmem,_ := GlobalAlloc(GMEM_MOVEABLE, bitmapDataSize)
+	defer GlobalFree(hmem)
+	memptr,_ := GlobalLock(hmem)
+	defer GlobalUnlock(hmem)
 
-	// Convert bitmap bytes to an image
-	img := convertBGRAtoRGBAAndFlip(bitmapBytes, int(w), int(h))
+	old,_ := SelectObject(memory_device, bitmap)
+	if old == 0 {
+		return "", errors.New("SelectObject failed")
+	}
+	defer SelectObject(memory_device, old)
 
-	// Encode image to PNG
+	succ,_:=BitBlt(memory_device, 0, 0, int32(width), int32(height), hdc, x1, y1, SRCCOPY)
+
+	if !succ {
+		return "", errors.New("BitBlt failed")
+	}
+
+	ress, _ :=GetDIBits(hdc, bitmap, 0, uint32(height), (*uint8)(unsafe.Pointer(memptr)), (*BITMAPINFO)(unsafe.Pointer(&header)), DIB_RGB_COLORS)
+	if ress == 0 {
+		return "", errors.New("GetDIBits failed")
+	}
+
+	i := 0
+	src := uintptr(memptr)
+	for y := 0; y < int(height); y++ {
+		for x := 0; x < int(width); x++ {
+			v0 := *(*uint8)(unsafe.Pointer(src))
+			v1 := *(*uint8)(unsafe.Pointer(src + 1))
+			v2 := *(*uint8)(unsafe.Pointer(src + 2))
+
+			// BGRA => RGBA, and set A to 255
+			img.Pix[i], img.Pix[i+1], img.Pix[i+2], img.Pix[i+3] = v2, v1, v0, 255
+
+			i += 4
+			src += 4
+		}
+	}
 	var pngBuffer bytes.Buffer
 	err := png.Encode(&pngBuffer, img)
 	if err != nil {
@@ -63,17 +116,4 @@ func GetScreenshot() (string, error) {
 	imgBase64Str := base64.StdEncoding.EncodeToString(pngBuffer.Bytes())
 
 	return imgBase64Str, nil
-}
-
-func convertBGRAtoRGBAAndFlip(bgra []byte, width, height int) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			flipY := height - y - 1
-			j := (flipY*width + x) * 4
-			b, g, r, a := bgra[j], bgra[j+1], bgra[j+2], bgra[j+3]
-			img.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
-		}
-	}
-	return img
 }

