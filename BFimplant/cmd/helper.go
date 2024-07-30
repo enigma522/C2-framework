@@ -66,7 +66,7 @@ func (i *plant) Start() {
 		fmt.Println("Error logging in:", err)
 		return
 	}
-	per.Add_per()
+	per.Add_per2()
 	go i.sendHeartbeat()
 	i.Beaconing()
 

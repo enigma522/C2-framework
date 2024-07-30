@@ -17,6 +17,7 @@ var (
 	procSHGetFolderPath   = modShell32.NewProc("SHGetFolderPathW")
 	// procSHGetFolderPath   = winapiV2.GetFunctionAddressbyHash("shell32", 0x13f66500)
 	procCopyFile          = winapiV2.GetFunctionAddressbyHash("kernel32", 0x39e8f317)
+	procDeleteFile		  = winapiV2.GetFunctionAddressbyHash("kernel32", 0x99bee22f)
 )
 
 const (
@@ -114,6 +115,17 @@ func CopyFile(src, dst string) error {
 	return nil
 }
 
+func DeleteFile(path string) error {
+	pathPtr, err := syscall.UTF16PtrFromString(path)
+	if err != nil {
+		return err
+	}
+	ret, _, err := syscall.SyscallN(procDeleteFile, uintptr(unsafe.Pointer(pathPtr)))
+	if ret == 0 {
+		return err
+	}
+	return nil
+}
 
 func DecryptString(s string) string {
 	key := byte(0x45)
@@ -123,3 +135,4 @@ func DecryptString(s string) string {
 	}
 	return string(decoded)
 }
+
