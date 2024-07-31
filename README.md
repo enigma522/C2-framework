@@ -1,4 +1,4 @@
-# C2 Framework
+# Ghost-Net C2 Framework
 <br />
 <div align="center">
 <img src="./public/OIG3.jpeg" width=400>
