@@ -1,34 +1,52 @@
 # C2 Framework
----
+
 **Overview**
 ---
-This is Command and Control (C2) Framework is designed as part of the an intership at pwn&patch to facilitate red team operations. The framework includes:
+This is Command and Control (C2) Framework is designed by [**Mohamed Masmoudi**](https://github.com/enigma522) and [**Moahemd Malek Gharbi**](https://github.com/Malek-trez) as part of the a summer intership at [**Pwn&Patch**](https://www.pwnandpatch.com/) to facilitate red team operations. 
+
+**Architecture**
+---
+The framework includes:
 
 1. CLI: Command-line interface for interacting with the implant.
 2. C2 Server: The server-side component that controls and communicates with the implant.
-3. Implant: A malware that runs on the target machine. 
+3. Implant: A malware that runs on the target machine.
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+<img src="https://github.com/enigma522/C2-framework/img/basicarch.png" width=300>
+  <h3 align="center">C2 - Framework</h3>
+  </p>
+</div>
 
 **Features**
 ---
-- Secure communication between implant and C2 server
-- Easy-to-use CLI for managing implants
-- Real-time data collection and command execution
+- Secure communication between implant and C2 server.
+- Easy-to-use CLI for managing implants.
+- Real-time data collection and command execution.
+- modulare implemantion that makes it easy to add more featres.
   
 **Installation**
 ---
 
 1. Prerequisites
+   
 Go (for implant development)
+
 Docker (for C2 server)
+
 Python (for C2 server)
 
 2. Clone the Repository
 
-` git clone [https://github.com/yourusername/c2-framework.git](https://github.com/enigma522/C2-framework) `
-
-`cd c2-framework`
+```shell
+git clone https://github.com/enigma522/C2-framework
+cd c2-framework
+```
 
 3. Setting Up the Implant
+   
+    (https://github.com/enigma522/C2-framework/tree/main/BFimplant) 
 - Navigate to the implant directory:
 
 ` cd implant `
@@ -40,6 +58,8 @@ Python (for C2 server)
 `go build -o implant main.go`
 
 4. Setting Up the CLI:
+   
+ (https://github.com/enigma522/C2-framework/tree/main/Cli)
 
 Navigate to the CLI directory:
 `cd cli`
@@ -49,42 +69,46 @@ Navigate to the CLI directory:
 Install dependencies and build the CLI:
 
 5. Setting Up the C2 Server:
+   
+   (https://github.com/enigma522/C2-framework/tree/main/C2-Server)
 
 `cd c2-server`
 
 `docker-compose up`
 
-**Usage**
----
 
-Running the Implant
-Start the implant on the target machine:
-bash
-Copier le code
-./implant --server <C2_SERVER_URL>
-Using the CLI
-Interact with the implant using the CLI:
-bash
-Copier le code
-./cli --server <C2_SERVER_URL> --command <COMMAND>
-Accessing the C2 Server
-Open your web browser and navigate to:
-url
-Copier le code
-http://localhost:8000
-Configuration
-config.json: Configuration file for the C2 server. Modify this file to set server parameters, port numbers, etc.
-implant.config: Configuration file for the implant. Specify server address and other settings.
-Contributing
-Fork the repository.
-Create a new branch (git checkout -b feature-branch).
-Commit your changes (git commit -am 'Add new feature').
-Push to the branch (git push origin feature-branch).
-Create a new Pull Request.
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
+<!-- CONTRIBUTING -->
+## Contributing
 
-Contact
-For questions or feedback, please contact your-email@example.com.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Feel free to adjust the sections to better fit your project’s specifics. Let me know if you need any additional sections or details!
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- CONTACT -->
+## Contact
+
+Moahemd Masmoudi ~ enigma - mohamedmasmoudi745@gmail.com  
+Mohamed Malek Gharbi ~ Trez13  - melek.gharbi1@gmail.com
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
