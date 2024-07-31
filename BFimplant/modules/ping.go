@@ -16,7 +16,7 @@ func (m *PingModule) Name() string {
 }
 
 func (m *PingModule) Execute(command string, data []byte) (string, error) {
-	fmt.Println("Executing ping")
+	fmt.Println("Execccccc pinnnnnnn")
 	return "PONG", nil
 }
 

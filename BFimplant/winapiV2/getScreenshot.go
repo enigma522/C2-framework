@@ -30,7 +30,7 @@ func GetScreenshot() (string, error) {
 
 	s, _ := SetProcessDPIAware()
 	if !s {
-		return "", fmt.Errorf("failed to set process DPI aware")
+		return "", fmt.Errorf("failllll to settttt proccccc DPI aware")
 	}
 	x1, _ = GetSystemMetrics(SM_XVIRTUALSCREEN)
 	y1, _ = GetSystemMetrics(SM_YVIRTUALSCREEN)

