@@ -14,7 +14,7 @@ The framework includes:
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-<img src="https://github.com/enigma522/C2-framework/img/basicarch.png" width=300>
+<img src="https://github.com/enigma522/C2-framework/basicarch.png" width=300>
   <h3 align="center">C2 - Framework</h3>
   </p>
 </div>
