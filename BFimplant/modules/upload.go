@@ -35,6 +35,11 @@ func (m *UploadModule) Execute(filePath string,data []byte) (string, error) {
 	var bread uint32
 
 	succ, err := winapiV2.ReadFile(fileHandle, &b[0] ,uint32(len(b)), &bread, nil)
+	
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return "", err
+	}
 	if !succ {
 		fmt.Println("Error reading file:", err )
 		return "", err

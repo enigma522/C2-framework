@@ -1,4 +1,10 @@
 # C2 Framework
+<br />
+<div align="center">
+<img src="./public/OIG3.jpeg" width=400>
+  <h3 align="center">Ghost-Net C2 - Framework</h3>
+  </p>
+</div>
 
 **Overview**
 ---
@@ -10,11 +16,10 @@ The framework includes:
 
 1. CLI: Command-line interface for interacting with the implant.
 2. C2 Server: The server-side component that controls and communicates with the implant.
-3. Implant: A malware that runs on the target machine.
-<!-- PROJECT LOGO -->
+3. Implant: A malware that runs on the target machine. (windows/linux)
 <br />
 <div align="center">
-<img src="https://github.com/enigma522/C2-framework/basicarch.png" width=300>
+<img src="./public/basicarch.png" width=400>
   <h3 align="center">C2 - Framework</h3>
   </p>
 </div>
@@ -31,11 +36,9 @@ The framework includes:
 
 1. Prerequisites
    
-Go (for implant development)
-
-Docker (for C2 server)
-
-Python (for C2 server)
+- Go (for implant development)
+- Docker (for C2 server)
+- Python (for C2 server)
 
 2. Clone the Repository
 
@@ -45,38 +48,59 @@ cd c2-framework
 ```
 
 3. Setting Up the Implant
-   
-    (https://github.com/enigma522/C2-framework/tree/main/BFimplant) 
-- Navigate to the implant directory:
+ 
+To set up the implant, you need to use the create_implant.py script. Follow these steps:
 
-` cd implant `
+- Ensure you have Python installed on your machine.
+- Change the working directory to the c2-framework directory.
+- Run the create_implant.py script with the required parameters: implant_name, ip-C2, and secret.
 
--change the ip address and for your c2 server in cmd/main.go
+```shell
+python create_implant.py <implant_name> <ip-C2> <secret>
+```
+- `implant_name`: The desired name for your implant binary.
+- `ip-C2`: The IP address of your C2 server. (You can use an Azure VM for this.)
+- `secret`: The secret key that allows the implant to communicate with the C2 server. This key should be set in the .env file of the C2 server.
+<br />
+<div align="center">
+<img src="./public/create-imp.png">
+</div>
 
-- Build the implant:
-- 
-`go build -o implant main.go`
-
-4. Setting Up the CLI:
-   
- (https://github.com/enigma522/C2-framework/tree/main/Cli)
-
-Navigate to the CLI directory:
-`cd cli`
-`pip install -r requirements.txt`
-`python cli.py`
-
-Install dependencies and build the CLI:
 
 5. Setting Up the C2 Server:
-   
-   (https://github.com/enigma522/C2-framework/tree/main/C2-Server)
+- Ensure Docker is installed on your machine.
+- Update the .env file with the necessary environment variables,
+- including the secret key for the implant communication.
+<br />
+<div align="center">
+<img src="./public/env.png">
+</div>
 
-`cd c2-server`
+Run the Docker Compose to start the C2 server:
 
-`docker-compose up`
+```shell
+docker-compose up -d
+```
 
+- This will build and start the C2 server as a Docker container in detached mode.
 
+6. Running the CLI
+
+    Navigate to the cli directory:
+
+```shell
+cd cli
+```
+- Use the CLI to interact with the C2 server and manage implants:
+
+```shell
+python cli.py -h
+```
+- The CLI provides various commands to manage implants, execute commands on target machines, and collect data in real-time.
+<br />
+<div align="center">
+<img src="./public/cli.png">
+</div>
 <!-- CONTRIBUTING -->
 ## Contributing
 
@@ -92,16 +116,6 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
-## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTACT -->
